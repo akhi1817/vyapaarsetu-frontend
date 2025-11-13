@@ -1,75 +1,94 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { toast } from "sonner";
 import API_ENDPOINTS from "../../config/api";
+import { toast } from "sonner";
+import { useNavigate, Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { loginSuccess } from "../../redux/authSlice";
+import Cookies from "js-cookie";
 
 const Login = () => {
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
+    setLoading(true);
     try {
-      const response = await axios.post(
+      const res = await axios.post(
         API_ENDPOINTS.LOGIN_USER,
         { email, password },
         { withCredentials: true }
       );
 
-      toast.success(response?.data?.message || "Login successful!");
-      navigate("/");
+      const user = res.data.user;
+      if (!user) {
+        toast.error("User data not found");
+        return;
+      }
+
+      // ✅ Set Redux state
+      dispatch(loginSuccess(user));
+
+      // ✅ Set token in cookie
+      Cookies.set("token", res.data.token, { expires: 1 });
+
+      toast.success(res.data.message);
+
+      if (user.role === "admin") navigate("/admin-dashboard");
+      else navigate("/");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Login failed! Please try again.");
+      toast.error(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-linear-to-br from-blue-100 via-white to-blue-200 px-4">
-      <div className="bg-white shadow-xl rounded-2xl p-8 sm:p-10 w-full max-w-md transition-all duration-300">
-        <h1 className="text-3xl sm:text-4xl font-bold text-blue-600 text-center mb-2">
-          Login
-        </h1>
-        <p className="text-gray-600 text-center mb-8 text-sm sm:text-base">
-          Welcome back, you've been missed!
-        </p>
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-blue-50 to-blue-100 px-4">
+      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm">
+        <h2 className="text-2xl font-bold text-center text-blue-600 mb-6">
+          Welcome Back 👋
+        </h2>
 
         <form onSubmit={handleLogin} className="space-y-5">
           <input
             type="email"
             placeholder="Enter your email"
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
-
           <input
             type="password"
             placeholder="Enter your password"
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
-
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow-md transition duration-200"
+            disabled={loading}
+            className={`w-full py-2 text-white rounded-lg transition-all ${
+              loading ? "bg-blue-300 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
-        <p className="text-center text-gray-600 mt-6 text-sm sm:text-base">
+        <p className="text-sm text-center text-gray-500 mt-4">
           Don’t have an account?{" "}
           <Link
-            to="/register"
-            className="text-blue-600 hover:text-blue-700 font-medium"
+            to="/send-otp"
+            className="text-blue-600 font-medium hover:underline"
           >
-            Register here...
+            Register
           </Link>
         </p>
       </div>

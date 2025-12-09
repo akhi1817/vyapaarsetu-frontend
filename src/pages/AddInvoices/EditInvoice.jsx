@@ -1,257 +1,160 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useNavigate, useParams } from "react-router-dom";
 import API_ENDPOINTS from "../../config/api";
 import { toast } from "sonner";
+import { Loader2, ArrowLeft, FileDown, Pencil, CheckCircle, XCircle } from "lucide-react";
 
-const EditInvoice = () => {
-  const navigate = useNavigate();
+export default function EditInvoice() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
-    clientName: "",
-    clientEmail: "",
-    projectName: "",
-    liveLink: "",
-    basePrice: 0,
-    discountPercent: 0,
-    isOneTime: false,
-    subscriptionDuration: 12,
-    maintenancePerMonth: 0,
-    advancePaid: 0,
-    paymentMode: "UPI",
-    notes: "",
-  });
+  const [invoice, setInvoice] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const [discountedPrice, setDiscountedPrice] = useState(0);
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [perMonthAmount, setPerMonthAmount] = useState(0);
-  const [remainingAmount, setRemainingAmount] = useState(0);
-
-  // Fetch invoice by ID and prefill
-  useEffect(() => {
-    const fetchInvoice = async () => {
-      try {
-        const res = await axios.get(API_ENDPOINTS.GET_INVOICE(id), { withCredentials: true });
-        const data = res.data;
-
-        setFormData({
-          clientName: data.clientName,
-          clientEmail: data.clientEmail,
-          projectName: data.projectName,
-          liveLink: data.liveLink,
-          basePrice: data.basePrice,
-          discountPercent: data.discountPercent,
-          isOneTime: data.subscriptionDuration === 0,
-          subscriptionDuration: data.subscriptionDuration || 12,
-          maintenancePerMonth: data.maintenancePerMonth,
-          advancePaid: data.advancePaid,
-          paymentMode: data.paymentMode,
-          notes: data.notes,
-        });
-      } catch (err) {
-        toast.error("Failed to fetch invoice");
-      }
-    };
-    fetchInvoice();
-  }, [id]);
-
-  // Calculate dynamic summary
-  useEffect(() => {
-    const discountPrice = formData.basePrice * (1 - formData.discountPercent / 100);
-    setDiscountedPrice(discountPrice);
-
-    const total = formData.isOneTime
-      ? discountPrice
-      : discountPrice + formData.maintenancePerMonth * formData.subscriptionDuration;
-    setTotalAmount(total);
-
-    const perMonth = formData.isOneTime ? total : total / formData.subscriptionDuration;
-    setPerMonthAmount(perMonth);
-
-    const remaining = total - formData.advancePaid;
-    setRemainingAmount(remaining >= 0 ? remaining : 0);
-  }, [
-    formData.basePrice,
-    formData.discountPercent,
-    formData.isOneTime,
-    formData.subscriptionDuration,
-    formData.maintenancePerMonth,
-    formData.advancePaid,
-  ]);
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const fetchInvoice = async () => {
     try {
-      await axios.put(API_ENDPOINTS.UPDATE_INVOICE(id), formData, { withCredentials: true });
-      toast.success("Invoice updated successfully!");
-      navigate("/admin-dashboard/all-invoices");
+      const res = await axios.get(API_ENDPOINTS.GET_INVOICE(id), {
+        withCredentials: true,
+      });
+      setInvoice(res.data.invoice || res.data);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update invoice");
+      toast.error("Failed to load invoice");
+    } finally {
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchInvoice();
+  }, []);
+
+  const updateStatus = async (status) => {
+    try {
+      await axios.put(
+        `${API_ENDPOINTS.GET_INVOICE(id)}/status`,
+        { status },
+        { withCredentials: true }
+      );
+      toast.success(`Status updated to ${status}`);
+      fetchInvoice();
+    } catch (err) {
+      toast.error("Failed to update status");
+    }
+  };
+
+  if (loading)
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="animate-spin w-10 h-10 text-blue-600" />
+      </div>
+    );
+
+  if (!invoice)
+    return <p className="text-center pt-20 text-gray-500">Invoice not found</p>;
+
   return (
-    <div className="bg-gray-50 p-6 rounded-lg shadow-md max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4 text-center">Edit Invoice</h2>
-
-      <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={handleSubmit}>
-        <div>
-          <label className="block mb-1 font-medium">Client Name *</label>
-          <input
-            type="text"
-            name="clientName"
-            value={formData.clientName}
-            onChange={handleChange}
-            className="border p-2 rounded w-full"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block mb-1 font-medium">Client Email</label>
-          <input
-            type="email"
-            name="clientEmail"
-            value={formData.clientEmail}
-            onChange={handleChange}
-            className="border p-2 rounded w-full"
-          />
-        </div>
-
-        <div>
-          <label className="block mb-1 font-medium">Project Name *</label>
-          <input
-            type="text"
-            name="projectName"
-            value={formData.projectName}
-            onChange={handleChange}
-            className="border p-2 rounded w-full"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block mb-1 font-medium">Live Link</label>
-          <input
-            type="text"
-            name="liveLink"
-            value={formData.liveLink}
-            onChange={handleChange}
-            className="border p-2 rounded w-full"
-          />
-        </div>
-
-        <div>
-          <label className="block mb-1 font-medium">Base Price *</label>
-          <input
-            type="number"
-            name="basePrice"
-            value={formData.basePrice}
-            onChange={handleChange}
-            className="border p-2 rounded w-full"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block mb-1 font-medium">Discount (%)</label>
-          <input
-            type="number"
-            name="discountPercent"
-            value={formData.discountPercent}
-            onChange={handleChange}
-            className="border p-2 rounded w-full"
-          />
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <input type="checkbox" name="isOneTime" checked={formData.isOneTime} onChange={handleChange} />
-          <label>One-Time Invoice</label>
-        </div>
-
-        {!formData.isOneTime && (
-          <>
-            <div>
-              <label className="block mb-1 font-medium">Subscription Duration (Months)</label>
-              <input
-                type="number"
-                name="subscriptionDuration"
-                value={formData.subscriptionDuration}
-                onChange={handleChange}
-                className="border p-2 rounded w-full"
-              />
-            </div>
-
-            <div>
-              <label className="block mb-1 font-medium">Maintenance per Month</label>
-              <input
-                type="number"
-                name="maintenancePerMonth"
-                value={formData.maintenancePerMonth}
-                onChange={handleChange}
-                className="border p-2 rounded w-full"
-              />
-            </div>
-          </>
-        )}
-
-        <div>
-          <label className="block mb-1 font-medium">Advance Paid</label>
-          <input
-            type="number"
-            name="advancePaid"
-            value={formData.advancePaid}
-            onChange={handleChange}
-            className="border p-2 rounded w-full"
-          />
-        </div>
-
-        <div>
-          <label className="block mb-1 font-medium">Payment Mode</label>
-          <select
-            name="paymentMode"
-            value={formData.paymentMode}
-            onChange={handleChange}
-            className="border p-2 rounded w-full"
-          >
-            <option value="UPI">UPI</option>
-            <option value="Cash">Cash</option>
-          </select>
-        </div>
-
-        <div className="md:col-span-2">
-          <label className="block mb-1 font-medium">Notes</label>
-          <textarea
-            name="notes"
-            value={formData.notes}
-            onChange={handleChange}
-            className="border p-2 rounded w-full"
-          />
-        </div>
-
-        {/* Summary */}
-        <div className="md:col-span-2 bg-gray-100 p-4 rounded">
-          <p>Discounted Price: ₹{discountedPrice.toFixed(2)}</p>
-          <p>Total Amount: ₹{totalAmount.toFixed(2)}</p>
-          {!formData.isOneTime && <p>Per Month: ₹{perMonthAmount.toFixed(2)}</p>}
-          <p>Remaining Amount: ₹{remainingAmount.toFixed(2)}</p>
-        </div>
-
-        <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded md:col-span-2">
-          Update Invoice
+    <div className="p-4 sm:p-6 max-w-4xl mx-auto">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-gray-700 hover:text-black"
+        >
+          <ArrowLeft size={20} /> Back
         </button>
-      </form>
+
+        <div className="flex gap-3">
+          <a
+            href={API_ENDPOINTS.EXPORT_INVOICE_PDF(invoice._id)}
+            target="_blank"
+            className="bg-green-600 px-4 py-2 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+          >
+            <FileDown size={18} /> PDF
+          </a>
+
+          <Link
+            to={`/invoices/edit/${invoice._id}`}
+            className="bg-blue-600 px-4 py-2 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          >
+            <Pencil size={18} /> Edit
+          </Link>
+        </div>
+      </div>
+
+      {/* Invoice Header */}
+      <div className="bg-white shadow rounded-lg p-6 mb-6">
+        <h2 className="text-xl font-bold text-gray-800 mb-2">
+          Invoice #{invoice.invoiceNo}
+        </h2>
+        <p className="text-gray-500">
+          Date: {new Date(invoice.createdAt).toLocaleDateString()}
+        </p>
+
+        {/* Status Badge */}
+        <span
+          className={`mt-3 inline-block px-3 py-1 rounded-full text-white text-sm ${
+            invoice.status === "PAID"
+              ? "bg-green-600"
+              : invoice.status === "DUE"
+              ? "bg-red-500"
+              : "bg-blue-600"
+          }`}
+        >
+          {invoice.status}
+        </span>
+
+        {/* Status Buttons */}
+        <div className="flex gap-3 mt-4">
+          <button
+            onClick={() => updateStatus("PAID")}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          >
+            <CheckCircle size={18} /> Mark Paid
+          </button>
+
+          <button
+            onClick={() => updateStatus("DUE")}
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+          >
+            <XCircle size={18} /> Mark Due
+          </button>
+        </div>
+      </div>
+
+      {/* Client Info */}
+      <div className="bg-white shadow rounded-lg p-6 mb-6">
+        <h3 className="font-semibold mb-2">Client Details</h3>
+        <p>{invoice.client?.name}</p>
+        <p>{invoice.client?.email}</p>
+        <p>{invoice.client?.address}</p>
+        <p>GSTIN: {invoice.client?.gstin}</p>
+      </div>
+
+      {/* Amount Summary */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <h3 className="font-semibold mb-3">Amounts</h3>
+
+        <div className="flex justify-between py-1">
+          <span>Total Amount:</span>
+          <span>₹{invoice.totalAmount}</span>
+        </div>
+
+        <div className="flex justify-between py-1">
+          <span>Tax:</span>
+          <span>₹{invoice.totalTax}</span>
+        </div>
+
+        <div className="flex justify-between py-1 font-semibold text-lg">
+          <span>Grand Total:</span>
+          <span>₹{invoice.totalAmount + invoice.totalTax}</span>
+        </div>
+
+        <div className="flex justify-between py-1 text-blue-700 font-bold">
+          <span>Due:</span>
+          <span>₹{invoice.totalDue}</span>
+        </div>
+      </div>
     </div>
   );
-};
-
-export default EditInvoice;
+}

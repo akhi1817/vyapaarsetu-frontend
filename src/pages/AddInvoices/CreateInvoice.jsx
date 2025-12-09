@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
 import API_ENDPOINTS from "../../config/api";
 import { toast } from "sonner";
@@ -6,223 +6,195 @@ import { useNavigate } from "react-router-dom";
 
 const CreateInvoice = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+
+  const [form, setForm] = useState({
+    dateOfSale: "",
     clientName: "",
-    clientEmail: "",
-    projectName: "",
-    liveLink: "",
-    basePrice: 0,
-    discountPercent: 0,
-    isOneTime: false,
-    subscriptionDuration: 12,
-    maintenancePerMonth: 0,
-    advancePaid: 0,
-    paymentMode: "UPI",
-    notes: "",
+    clientPhone: "",
+    websiteName:"",
+    websiteLink: "",
+    totalAmount: "",
+    receivedAmount: "",
+    paymentType: "cash",
+    validityEnd: "",
   });
 
-  const [discountedPrice, setDiscountedPrice] = useState(0);
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [perMonthAmount, setPerMonthAmount] = useState(0);
-  const [remainingAmount, setRemainingAmount] = useState(0);
-
-  useEffect(() => {
-    const discountPrice = formData.basePrice * (1 - formData.discountPercent / 100);
-    setDiscountedPrice(discountPrice);
-
-    const total = formData.isOneTime
-      ? discountPrice
-      : discountPrice + formData.maintenancePerMonth * formData.subscriptionDuration;
-    setTotalAmount(total);
-
-    const perMonth = formData.isOneTime ? total : total / formData.subscriptionDuration;
-    setPerMonthAmount(perMonth);
-
-    const remaining = total - formData.advancePaid;
-    setRemainingAmount(remaining >= 0 ? remaining : 0);
-  }, [
-    formData.basePrice,
-    formData.discountPercent,
-    formData.isOneTime,
-    formData.subscriptionDuration,
-    formData.maintenancePerMonth,
-    formData.advancePaid,
-  ]);
-
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    const { name, value } = e.target;
+
+    setForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: value,
     }));
   };
 
+  // Auto calculate dueAmount (frontend display only)
+  const dueAmount =
+    Number(form.totalAmount || 0) - Number(form.receivedAmount || 0);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      await axios.post(API_ENDPOINTS.CREATE_INVOICE, formData, { withCredentials: true });
+      const payload = {
+        ...form,
+        dateOfSale: form.dateOfSale || new Date(),
+        validityEnd: form.validityEnd || undefined,
+        totalAmount: Number(form.totalAmount),
+        receivedAmount: Number(form.receivedAmount),
+      };
+
+      const res = await axios.post(API_ENDPOINTS.CREATE_INVOICE, payload, {
+        withCredentials: true,
+      });
+
       toast.success("Invoice created successfully!");
-      navigate("/admin-dashboard/all-invoices");
+      navigate("/admin-dashboard/all-invoices"); // redirect to invoice list
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to create invoice");
+      toast.error(err.response?.data?.message || "Error creating invoice");
+      console.error(err);
     }
   };
 
   return (
-    <div className="bg-gray-50 p-6 rounded-lg shadow-md max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4 text-center">Create New Invoice</h2>
-      <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={handleSubmit}>
-        
+    <div className="max-w-2xl mx-auto bg-white shadow-lg p-6 rounded-xl mt-6">
+      <h2 className="text-2xl font-bold mb-4">Create New Invoice</h2>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+
+        {/* Date */}
         <div>
-          <label className="block mb-1 font-medium">Client Name *</label>
+          <label className="block font-medium">Date of Sale</label>
+          <input
+            type="date"
+            name="dateOfSale"
+            value={form.dateOfSale}
+            onChange={handleChange}
+            className="w-full border rounded p-2"
+          />
+        </div>
+
+        {/* Client Name */}
+        <div>
+          <label className="block font-medium">Client Name</label>
           <input
             type="text"
             name="clientName"
-            value={formData.clientName}
+            value={form.clientName}
             onChange={handleChange}
-            className="border p-2 rounded w-full"
+            className="w-full border rounded p-2"
             required
           />
         </div>
 
+        {/* Client Phone */}
         <div>
-          <label className="block mb-1 font-medium">Client Email</label>
-          <input
-            type="email"
-            name="clientEmail"
-            value={formData.clientEmail}
-            onChange={handleChange}
-            className="border p-2 rounded w-full"
-          />
-        </div>
-
-        <div>
-          <label className="block mb-1 font-medium">Project Name *</label>
+          <label className="block font-medium">Client Phone</label>
           <input
             type="text"
-            name="projectName"
-            value={formData.projectName}
+            name="clientPhone"
+            value={form.clientPhone}
             onChange={handleChange}
-            className="border p-2 rounded w-full"
+            className="w-full border rounded p-2"
             required
           />
         </div>
+      <div>
+  <label className="block font-medium">Website Name</label>
+  <input
+    type="text"
+    name="websiteName"
+    placeholder="Website Name"
+    className="w-full p-3 border rounded"
+    value={form.websiteName}
+    onChange={handleChange} // <-- use existing handleChange
+    required
+  />
+</div>
 
+
+        {/* Website Link */}
         <div>
-          <label className="block mb-1 font-medium">Live Link</label>
+          <label className="block font-medium">Website Link</label>
           <input
             type="text"
-            name="liveLink"
-            value={formData.liveLink}
+            name="websiteLink"
+            value={form.websiteLink}
             onChange={handleChange}
-            className="border p-2 rounded w-full"
-          />
-        </div>
-
-        <div>
-          <label className="block mb-1 font-medium">Base Price *</label>
-          <input
-            type="number"
-            name="basePrice"
-            value={formData.basePrice}
-            onChange={handleChange}
-            className="border p-2 rounded w-full"
+            className="w-full border rounded p-2"
             required
           />
         </div>
 
+        {/* Total Amount */}
         <div>
-          <label className="block mb-1 font-medium">Discount (%)</label>
+          <label className="block font-medium">Total Amount</label>
           <input
             type="number"
-            name="discountPercent"
-            value={formData.discountPercent}
+            name="totalAmount"
+            value={form.totalAmount}
             onChange={handleChange}
-            className="border p-2 rounded w-full"
+            className="w-full border rounded p-2"
+            required
           />
         </div>
 
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            name="isOneTime"
-            checked={formData.isOneTime}
-            onChange={handleChange}
-          />
-          <label>One-Time Invoice</label>
-        </div>
-
-        {!formData.isOneTime && (
-          <div>
-            <label className="block mb-1 font-medium">Subscription Duration (Months)</label>
-            <input
-              type="number"
-              name="subscriptionDuration"
-              value={formData.subscriptionDuration}
-              onChange={handleChange}
-              className="border p-2 rounded w-full"
-            />
-          </div>
-        )}
-
-        {!formData.isOneTime && (
-          <div>
-            <label className="block mb-1 font-medium">Maintenance per Month</label>
-            <input
-              type="number"
-              name="maintenancePerMonth"
-              value={formData.maintenancePerMonth}
-              onChange={handleChange}
-              className="border p-2 rounded w-full"
-            />
-          </div>
-        )}
-
+        {/* Received Amount */}
         <div>
-          <label className="block mb-1 font-medium">Advance Paid</label>
+          <label className="block font-medium">Received Amount</label>
           <input
             type="number"
-            name="advancePaid"
-            value={formData.advancePaid}
+            name="receivedAmount"
+            value={form.receivedAmount}
             onChange={handleChange}
-            className="border p-2 rounded w-full"
+            className="w-full border rounded p-2"
+            required
           />
         </div>
 
+        {/* Due Amount (auto) */}
         <div>
-          <label className="block mb-1 font-medium">Payment Mode</label>
+          <label className="block font-medium">Due Amount</label>
+          <input
+            type="number"
+            className="w-full border rounded p-2 bg-gray-100"
+            value={dueAmount}
+            disabled
+          />
+        </div>
+
+        {/* Payment Type */}
+        <div>
+          <label className="block font-medium">Payment Type</label>
           <select
-            name="paymentMode"
-            value={formData.paymentMode}
+            name="paymentType"
+            value={form.paymentType}
             onChange={handleChange}
-            className="border p-2 rounded w-full"
+            className="w-full border rounded p-2"
+            required
           >
-            <option value="UPI">UPI</option>
-            <option value="Cash">Cash</option>
+            <option value="cash">Cash</option>
+            <option value="cheque">Cheque</option>
+            <option value="upi">UPI</option>
+            <option value="other">Other</option>
           </select>
         </div>
 
-        <div className="md:col-span-2">
-          <label className="block mb-1 font-medium">Notes</label>
-          <textarea
-            name="notes"
-            value={formData.notes}
+        {/* Validity End (Optional) */}
+        <div>
+          <label className="block font-medium">Validity End (Optional)</label>
+          <input
+            type="date"
+            name="validityEnd"
+            value={form.validityEnd}
             onChange={handleChange}
-            className="border p-2 rounded w-full"
+            className="w-full border rounded p-2"
           />
-        </div>
-
-        {/* Summary */}
-        <div className="md:col-span-2 bg-gray-100 p-4 rounded">
-          <p>Discounted Price: ₹{discountedPrice.toFixed(2)}</p>
-          <p>Total Amount: ₹{totalAmount.toFixed(2)}</p>
-          {!formData.isOneTime && <p>Per Month: ₹{perMonthAmount.toFixed(2)}</p>}
-          <p>Remaining Amount: ₹{remainingAmount.toFixed(2)}</p>
         </div>
 
         <button
           type="submit"
-          className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded md:col-span-2"
+          className="w-full bg-blue-600 text-white p-2 rounded-lg font-semibold hover:bg-blue-700"
         >
           Create Invoice
         </button>
@@ -231,4 +203,4 @@ const CreateInvoice = () => {
   );
 };
 
-export default CreateInvoice;
+export default CreateInvoice ;

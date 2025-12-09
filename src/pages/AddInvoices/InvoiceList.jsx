@@ -1,27 +1,31 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
-import "jspdf-autotable"; // <-- import only, DON'T assign anything
-
-
 import API_ENDPOINTS from "../../config/api";
+import { Link } from "react-router-dom";
+import { toast } from "sonner";
+import { Loader2, FileDown, Eye, Trash2, PlusCircle, Printer } from "lucide-react";
 
-const InvoiceList = () => {
-  const navigate = useNavigate();
+export default function InvoiceList() {
   const [invoices, setInvoices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const printRef = useRef();
 
-  // ✅ Fetch Invoices
+  // ---------------------------
+  // Fetch All Invoices
+  // ---------------------------
   const fetchInvoices = async () => {
+    setLoading(true);
     try {
-      const res = await axios.get(API_ENDPOINTS.GET_ALL_INVOICES, {
+      const res = await axios.get(API_ENDPOINTS.GET_INVOICES, {
         withCredentials: true,
       });
       setInvoices(Array.isArray(res.data) ? res.data : []);
-    } catch (err) {
-      toast.error("Failed to fetch invoices");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to load invoices");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -29,197 +33,377 @@ const InvoiceList = () => {
     fetchInvoices();
   }, []);
 
-  // ✅ Delete Invoice
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this invoice?")) return;
+  // ---------------------------
+  // Delete Invoice
+  // ---------------------------
+  const deleteInvoice = async (id) => {
+    if (!confirm("Are you sure you want to delete this invoice?")) return;
     try {
-      await axios.delete(API_ENDPOINTS.DELETE_INVOICE(id), {
-        withCredentials: true,
-      });
-      toast.success("Invoice deleted successfully");
+      await axios.delete(API_ENDPOINTS.DELETE_INVOICE(id), { withCredentials: true });
+      toast.success("Invoice deleted");
       fetchInvoices();
-    } catch (err) {
-      toast.error("Failed to delete invoice");
+    } catch (error) {
+      console.error(error);
+      toast.error("Delete failed");
     }
   };
 
-  // ✅ Export all invoices to Excel
-  const handleExportExcel = () => {
-    if (!invoices.length) {
-      toast.error("No invoices to export");
-      return;
-    }
-    const worksheet = XLSX.utils.json_to_sheet(invoices);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Invoices");
-    XLSX.writeFile(workbook, "Invoices.xlsx");
-  };
+  // ---------------------------
+  // Print Invoice
+  // ---------------------------
+const printInvoice = (inv) => {
+  const content = `
+  <html>
+    <head>
+      <title>Invoice ${inv.invoiceNo}</title>
 
-  // ✅ Export single invoice to PDF
-// ✅ REPLACE ONLY THIS FUNCTION IN YOUR FILE
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 0;
+          background: #fff;
+        }
 
-const handleExportPDF = (invoice) => {
-  const doc = new jsPDF("p", "mm", "a4");
-  const logo = new Image();
-  logo.src = "/logo.png";
+        .container {
+          width: 820px;
+          margin: auto;
+          padding: 25px 35px;
+          border: 1px solid #ccc;
+        }
 
-  logo.onload = () => {
-    // ===== Header Section =====
-    doc.addImage(logo, "PNG", 15, 10, 25, 25);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    doc.text("Vyapaarsetu Business Solutions", 105, 20, { align: "center" });
+        /* HEADER WITH LOGO */
+        .header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+        }
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
-    doc.text("Pimpri, Pune", 105, 27, { align: "center" });
-    doc.text("Email: vyapaarsetu2025@gmail.com | Phone: 8177819283", 105, 33, { align: "center" });
+        .header img {
+          height: 70px;
+        }
 
-    doc.setDrawColor(180);
-    doc.line(15, 40, 195, 40);
+        .header .company-title {
+          text-align: right;
+          font-size: 16px;
+          font-weight: bold;
+          line-height: 1.4;
+        }
 
-    // ===== Invoice Title =====
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.text("INVOICE", 15, 52);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
+        /* TOP TITLE */
+        .title-box {
+          text-align: center;
+          margin-bottom: 30px;
+        }
+        .title-box h1 {
+          font-size: 28px;
+          margin: 0;
+          font-weight: bold;
+          letter-spacing: 2px;
+        }
+        .title-box .subtitle {
+          margin-top: 5px;
+          font-size: 13px;
+          color: #666;
+        }
 
-    // ===== Client Information =====
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
-    doc.text("Client Information", 15, 64);
-    doc.setDrawColor(200);
-    doc.line(15, 66, 70, 66);
+        /* DETAILS & BILL TO */
+        .details-section {
+          width: 100%;
+          border-top: 2px solid #000;
+          border-bottom: 2px solid #000;
+          padding: 10px 0;
+          margin-bottom: 25px;
+        }
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
-    doc.text(`Client Name: ${invoice.clientName}`, 15, 74);
-    doc.text(`Project Name: ${invoice.projectName}`, 15, 82);
-    doc.text(`Client Email: ${invoice.clientEmail}`, 15, 90);
+        .row {
+          display: flex;
+          justify-content: space-between;
+          margin: 5px 0;
+        }
 
-    // ===== Payment Summary Box =====
-    doc.setDrawColor(41, 128, 185);
-    doc.setLineWidth(0.6);
-    doc.rect(15, 98, 180, 35);
+        .col {
+          width: 48%;
+        }
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(13);
-    doc.text("Payment Summary", 20, 106);
+        .label {
+          font-weight: bold;
+          margin-bottom: 3px;
+          font-size: 13px;
+        }
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
-    doc.text(`Total Amount: ${invoice.totalAmount}`, 20, 115);
-    doc.text(`Remaining Amount: ${invoice.remainingAmount}`, 20, 123);
-    doc.text(`Payment Mode: ${invoice.paymentMode}`, 20, 131);
+        .value {
+          font-size: 14px;
+          margin-bottom: 3px;
+        }
 
-    // ===== Details Table =====
-    doc.autoTable({
-      startY: 145,
-      head: [["Field", "Value"]],
-      body: [
-        ["Live Link", invoice.liveLink || "N/A"],
-        ["Base Price", `${invoice.basePrice || "N/A"}`],
-        ["Discount (%)", `${invoice.discountPercent || 0}%`],
-        ["Subscription Duration", invoice.subscriptionDuration || "N/A"],
-        ["Maintenance/Month", `${invoice.maintenancePerMonth || "N/A"}`],
-        ["Advance Paid", `${invoice.advancePaid || "N/A"}`],
-        ["Notes", invoice.notes || "N/A"],
-      ],
-      theme: "grid",
-      headStyles: {
-        fillColor: [41, 128, 185],
-        textColor: 255,
-        fontStyle: "bold",
-      },
-      styles: {
-        fontSize: 11,
-        cellPadding: 5,
-      },
-      columnStyles: {
-        0: { fontStyle: "bold", cellWidth: 60 },
-        1: { cellWidth: 120 },
-      },
-    });
+        /* TABLE */
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 15px;
+        }
 
-    // ===== Footer Section =====
-    const finalY = doc.lastAutoTable.finalY + 15;
-    doc.setDrawColor(200);
-    doc.line(15, finalY - 5, 195, finalY - 5);
+        th {
+          background: #f0f0f0;
+          padding: 8px;
+          border: 1px solid #000;
+          font-size: 14px;
+          text-align: left;
+        }
 
-    doc.setFont("helvetica", "italic");
-    doc.setFontSize(11);
-    doc.text("Thank you for your business!", 15, finalY);
-    doc.text("For queries, contact Vyapaarsetu Business Solutions.", 15, finalY + 6);
+        td {
+          padding: 8px;
+          border: 1px solid #000;
+          font-size: 14px;
+        }
 
-    doc.setFontSize(9);
-    doc.text("This is a computer-generated invoice, no signature required.", 15, finalY + 14);
+        /* TOTALS BOX */
+        .totals-box {
+          width: 250px;
+          float: right;
+          margin-top: 20px;
+          border: 1px solid #000;
+        }
 
-    doc.save(`Invoice_${invoice.clientName}_${invoice._id}.pdf`);
-  };
+        .totals-box div {
+          display: flex;
+          justify-content: space-between;
+          padding: 8px 10px;
+          font-size: 14px;
+          border-bottom: 1px solid #000;
+        }
+
+        .totals-box div:last-child {
+          border-bottom: none;
+          font-weight: bold;
+          background: #f9f9f9;
+        }
+
+        /* NOTES */
+        .notes {
+          margin-top: 40px;
+          font-size: 14px;
+        }
+
+        /* SIGNATURE */
+        .signature-box {
+          margin-top: 60px;
+          text-align: right;
+        }
+        .signature-box img {
+          height: 70px;
+        }
+        .signature-label {
+          margin-top: 5px;
+          font-size: 14px;
+          font-weight: bold;
+        }
+
+        /* THANK YOU */
+        .thanks {
+          margin-top: 40px;
+          text-align: center;
+          font-size: 22px;
+          font-weight: bold;
+          letter-spacing: 3px;
+        }
+      </style>
+
+    </head>
+    <body>
+
+      <div class="container">
+
+        <!-- HEADER WITH LOGO -->
+        <div class="header">
+          <img src="/logo.png" alt="Logo">
+
+          <div class="company-title">
+            Vyapaarsetu Business Solutions<br>
+            Phone: 8177819283<br>
+            Email: vyapaarsetu2025@gmail.com
+          </div>
+        </div>
+
+        <!-- TOP TITLE -->
+        <div class="title-box">
+          <h1>WEB DESIGN INVOICE</h1>
+          <div class="subtitle">THANK YOU</div>
+        </div>
+
+        <!-- DETAILS -->
+        <div class="details-section">
+          <div class="row">
+            <div class="col">
+              <div class="label">DATE:</div>
+              <div class="value">${new Date(inv.dateOfSale || inv.createdAt).toLocaleDateString()}</div>
+            </div>
+            <div class="col">
+              <div class="label">INVOICE NO:</div>
+              <div class="value">${inv.invoiceNo}</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <div class="label">FROM:</div>
+              <div class="value"><strong>Vyapaarsetu Business Solutions</strong></div>
+              <div class="value">Phone: 8177819283</div>
+              <div class="value">Email: vyapaarsetu2025@gmail.com</div>
+            </div>
+
+            <div class="col">
+              <div class="label">BILL TO:</div>
+              <div class="value"><strong>${inv.clientName}</strong></div>
+              <div class="value">Phone: ${inv.clientPhone}</div>
+              <div class="value">Website: ${inv.websiteName}</div>
+              <div class="value">Link: ${inv.websiteLink}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MAIN TABLE -->
+        <table>
+          <thead>
+            <tr>
+              <th style="width:50%">DESCRIPTION</th>
+              <th style="width:15%">AMOUNT</th>
+              <th style="width:15%">RECEIVED</th>
+              <th style="width:15%">DUE</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>${inv.websiteName} – Web Design Service</td>
+              <td>₹${inv.totalAmount}</td>
+              <td>₹${inv.receivedAmount}</td>
+              <td>₹${inv.dueAmount}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- TOTALS BOX -->
+        <div class="totals-box">
+          <div><span>SUBTOTAL</span><span>₹${inv.totalAmount}</span></div>
+          <div><span>DISCOUNT</span><span>₹0</span></div>
+          <div><span>TOTAL</span><span>₹${inv.totalAmount}</span></div>
+        </div>
+
+        <div style="clear: both;"></div>
+
+        <!-- SIGNATURE -->
+        <div class="signature-box">
+          <img src="/signature.png" alt="Signature">
+          <div class="signature-label">Authorized Signature</div>
+        </div>
+
+        <div class="thanks">THANK YOU</div>
+
+      </div>
+
+    </body>
+  </html>
+  `;
+
+  const printWindow = window.open("", "_blank", "width=900,height=700");
+  printWindow.document.write(content);
+  printWindow.document.close();
+  printWindow.print();
 };
 
 
 
 
+
+  // ---------------------------
+  // Filter invoices
+  // ---------------------------
+  const filteredInvoices = (invoices || []).filter((inv) =>
+    inv.clientName.toLowerCase().includes(search.toLowerCase()) ||
+    inv.invoiceNo.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">All Invoices</h2>
-        <button
-          onClick={handleExportExcel}
-          className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded"
+    <div className="p-4 sm:p-6">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">Invoices</h1>
+        <Link
+          to="/admin-dashboard/create-invoice"
+          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
         >
-          Export All to Excel
-        </button>
+          <PlusCircle size={20} />
+          Create Invoice
+        </Link>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-200">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-2 border">Client</th>
-              <th className="p-2 border">Project</th>
-              <th className="p-2 border">Total</th>
-              <th className="p-2 border">Remaining</th>
-              <th className="p-2 border">Actions</th>
+      {/* Search */}
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search by client or invoice no..."
+          className="w-full p-3 border rounded-lg shadow-sm focus:ring focus:ring-blue-300 outline-none"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto bg-white shadow rounded-lg">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-gray-100 text-gray-700">
+              <th className="p-3 border">Invoice No</th>
+              <th className="p-3 border">Client</th>
+              <th className="p-3 border">Amount</th>
+              <th className="p-3 border">Date</th>
+              <th className="p-3 border text-center">Actions</th>
             </tr>
           </thead>
+
           <tbody>
-            {Array.isArray(invoices) && invoices.length > 0 ? (
-              invoices.map((inv) => (
-                <tr key={inv._id} className="text-center border-t">
-                  <td className="p-2 border">{inv.clientName}</td>
-                  <td className="p-2 border">{inv.projectName}</td>
-                  <td className="p-2 border">₹{inv.totalAmount}</td>
-                  <td className="p-2 border">₹{inv.remainingAmount}</td>
-                  <td className="p-2 border flex gap-2 justify-center flex-wrap">
-                    <button
-                      onClick={() =>
-                        navigate(`/admin-dashboard/edit-invoice/${inv._id}`)
-                      }
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
-                    >
-                      Edit
+            {loading ? (
+              <tr>
+                <td colSpan={5} className="text-center p-6">
+                  <Loader2 className="animate-spin w-10 h-10 text-blue-600 mx-auto" />
+                </td>
+              </tr>
+            ) : filteredInvoices.length > 0 ? (
+              filteredInvoices.map((inv) => (
+                <tr key={inv._id} className="hover:bg-gray-50">
+                  <td className="p-3 border font-semibold">{inv.invoiceNo}</td>
+                  <td className="p-3 border">{inv.clientName}</td>
+                  <td className="p-3 border">₹{inv.totalAmount}</td>
+                  <td className="p-3 border">{new Date(inv.dateOfSale || inv.createdAt).toLocaleDateString()}</td>
+                  <td className="p-3 border flex items-center justify-center gap-3">
+                    <Link to={`/invoices/${inv._id}`} className="text-blue-600 hover:text-blue-800" title="View Invoice">
+                      <Eye size={20} />
+                    </Link>
+                    {API_ENDPOINTS.EXPORT_INVOICE_PDF && (
+                      <a
+                        href={API_ENDPOINTS.EXPORT_INVOICE_PDF(inv._id)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-green-600 hover:text-green-800"
+                        title="Download PDF"
+                      >
+                        <FileDown size={20} />
+                      </a>
+                    )}
+                    <button onClick={() => printInvoice(inv)} className="text-indigo-600 hover:text-indigo-800" title="Print Invoice">
+                      <Printer size={20} />
                     </button>
-                    <button
-                      onClick={() => handleDelete(inv._id)}
-                      className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded"
-                    >
-                      Delete
-                    </button>
-                    <button
-                      onClick={() => handleExportPDF(inv)}
-                      className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded"
-                    >
-                      Download PDF
+                    <button onClick={() => deleteInvoice(inv._id)} className="text-red-600 hover:text-red-800" title="Delete">
+                      <Trash2 size={20} />
                     </button>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="text-center py-4 text-gray-500">
+                <td colSpan={5} className="text-center p-6 text-gray-500">
                   No invoices found
                 </td>
               </tr>
@@ -229,6 +413,4 @@ const handleExportPDF = (invoice) => {
       </div>
     </div>
   );
-};
-
-export default InvoiceList;
+}

@@ -103,10 +103,14 @@ const About = () => {
           <p className="text-emerald-700 font-semibold">
             “Technology should empower, not complicate — and that’s the bridge we’re building.”
           </p>
+          
         </section>
       </div>
+
+      
     </div>
   );
 };
 
 export default About;
+

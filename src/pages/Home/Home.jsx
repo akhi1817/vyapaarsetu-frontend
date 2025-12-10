@@ -58,10 +58,7 @@ className="bg-emerald-600 text-white px-8 py-3 rounded-lg hover:bg-emerald-700 t
                 Get Started <ArrowRight className="w-5 h-5" />
               </button>
               <button
-                onClick={() => {
-                  const el = document.getElementById("features");
-                  el && el.scrollIntoView({ behavior: "smooth" });
-                }}
+                onClick={() => (window.location.href = "/features")}
 className="bg-emerald-600 text-white px-8 py-3 rounded-lg hover:bg-emerald-700 transition transform flex items-center justify-center gap-2 animate-cta"
               >
                 Learn More

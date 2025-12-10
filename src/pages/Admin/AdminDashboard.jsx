@@ -32,7 +32,7 @@ const AdminDashboard = () => {
   {/* Create Invoice */}
   <button
     onClick={() => navigate("/admin-dashboard/create-invoice")}
-    className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2.5 px-5 rounded-xl font-medium shadow-md hover:shadow-lg transition-all"
+    className="flex items-center gap-2 bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2.5 px-5 rounded-xl font-medium shadow-md hover:shadow-lg transition-all"
   >
     <Plus size={18} />
     Create Invoice
@@ -41,7 +41,7 @@ const AdminDashboard = () => {
   {/* View All Invoices */}
   <button
     onClick={() => navigate("/admin-dashboard/all-invoices")}
-    className="flex items-center gap-2 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white py-2.5 px-5 rounded-xl font-medium shadow-md hover:shadow-lg transition-all"
+    className="flex items-center gap-2 bg-linear-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white py-2.5 px-5 rounded-xl font-medium shadow-md hover:shadow-lg transition-all"
   >
     <List size={18} />
     View All Invoices
@@ -50,7 +50,7 @@ const AdminDashboard = () => {
   {/* Logout */}
   <button
     onClick={handleLogout}
-    className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-2.5 px-5 rounded-xl font-medium shadow-md hover:shadow-lg transition-all"
+    className="flex items-center gap-2 bg-linear-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-2.5 px-5 rounded-xl font-medium shadow-md hover:shadow-lg transition-all"
   >
     <LogOut size={18} />
     Logout

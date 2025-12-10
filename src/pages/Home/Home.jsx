@@ -52,7 +52,7 @@ const Home = () => {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <button
-                onClick={() => (window.location.href = "/login")}
+                onClick={() => (window.location.href = "/contact")}
 className="bg-emerald-600 text-white px-8 py-3 rounded-lg hover:bg-emerald-700 transition transform flex items-center justify-center gap-2 animate-cta"
               >
                 Get Started <ArrowRight className="w-5 h-5" />
@@ -132,7 +132,7 @@ className="bg-emerald-600 text-white px-8 py-3 rounded-lg hover:bg-emerald-700 t
             Join VyapaarSetu and manage your inventory, billing, and e-commerce operations — all from one powerful platform.
           </p>
           <button
-            onClick={() => (window.location.href = "/login")}
+            onClick={() => (window.location.href = "/contact")}
             className="bg-white text-emerald-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition transform hover:scale-105"
           >
             Get Started Now

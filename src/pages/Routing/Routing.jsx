@@ -32,7 +32,7 @@ const Routing = () => {
         <Route path="*" element={<FallbackRoute />} />
         <Route path='/send-otp' element={<Register />} />
         <Route path='/verify-otp' element={<VerifyOtp />} />
-        <Route path='/login' element={<Login />} />
+        <Route path='/hiiiamadminfullstackdevelopermern/login' element={<Login />} />
 
         {/* Admin Routes (Nested) */}
         <Route path="/admin-dashboard" element={

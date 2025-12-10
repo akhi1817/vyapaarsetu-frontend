@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import API_ENDPOINTS from "../../config/api";
 import { toast } from "sonner";
-import { Loader2, ArrowLeft, FileDown, Pencil, CheckCircle, XCircle } from "lucide-react";
 
 export default function EditInvoice() {
   const { id } = useParams();
@@ -11,14 +10,22 @@ export default function EditInvoice() {
 
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [newPayment, setNewPayment] = useState(0);
+  const [paymentType, setPaymentType] = useState("");
 
+  // ---------------------------
+  // Fetch invoice by ID
+  // ---------------------------
   const fetchInvoice = async () => {
     try {
-      const res = await axios.get(API_ENDPOINTS.GET_INVOICE(id), {
+      setLoading(true);
+      const res = await axios.get(API_ENDPOINTS.GET_INVOICE_BY_ID(id), {
         withCredentials: true,
       });
-      setInvoice(res.data.invoice || res.data);
+      setInvoice(res.data);
     } catch (err) {
+      console.error(err);
       toast.error("Failed to load invoice");
     } finally {
       setLoading(false);
@@ -27,133 +34,313 @@ export default function EditInvoice() {
 
   useEffect(() => {
     fetchInvoice();
-  }, []);
+  }, [id]);
 
-  const updateStatus = async (status) => {
+  // ---------------------------
+  // Handle invoice form changes
+  // ---------------------------
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setInvoice({ ...invoice, [name]: value });
+  };
+
+  const handleNestedChange = (e, parentKey) => {
+    const { name, value } = e.target;
+    setInvoice({
+      ...invoice,
+      [parentKey]: { ...invoice[parentKey], [name]: value },
+    });
+  };
+
+  // ---------------------------
+  // Handle full invoice update
+  // ---------------------------
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
+      setSaving(true);
+      await axios.put(API_ENDPOINTS.UPDATE_INVOICE(invoice._id), invoice, {
+        withCredentials: true,
+      });
+      toast.success("Invoice updated successfully");
+      navigate("/admin-dashboard/all-invoices");
+    } catch (err) {
+      console.error(err);
+      toast.error("Update failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ---------------------------
+  // Handle adding a new payment
+  // ---------------------------
+  const handlePaymentSubmit = async (e) => {
+    e.preventDefault();
+    if (newPayment <= 0) {
+      toast.error("Enter a valid payment amount");
+      return;
+    }
+    try {
+      setSaving(true);
+
+      // ✅ PUT request according to backend route
       await axios.put(
-        `${API_ENDPOINTS.GET_INVOICE(id)}/status`,
-        { status },
+        API_ENDPOINTS.UPDATE_PAYMENT(invoice._id),
+        {
+          receivedAmount: Number(newPayment),
+          paymentType,
+        },
         { withCredentials: true }
       );
-      toast.success(`Status updated to ${status}`);
+
+      toast.success("Payment added successfully");
+      setNewPayment(0);
+      setPaymentType("");
       fetchInvoice();
     } catch (err) {
-      toast.error("Failed to update status");
+      console.error(err);
+      toast.error("Payment update failed");
+    } finally {
+      setSaving(false);
     }
   };
 
   if (loading)
+    return <div className="text-center p-6">Loading invoice...</div>;
+  if (!invoice)
     return (
-      <div className="flex justify-center py-20">
-        <Loader2 className="animate-spin w-10 h-10 text-blue-600" />
-      </div>
+      <div className="text-center p-6 text-red-600">Invoice not found</div>
     );
 
-  if (!invoice)
-    return <p className="text-center pt-20 text-gray-500">Invoice not found</p>;
+  // ---------------------------
+  // Calculate totals and due dynamically
+  // ---------------------------
+  const discountAmount =
+    invoice.discount?.discountType === "percent"
+      ? (invoice.totalAmount * invoice.discount.amount) / 100
+      : invoice.discount?.amount || 0;
+
+  const finalTotal = Math.max(invoice.totalAmount - discountAmount, 0);
+  const dueAmount = Math.max(finalTotal - invoice.receivedAmount, 0);
 
   return (
-    <div className="p-4 sm:p-6 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-4 sm:p-6 max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">
+        Edit Invoice - {invoice.invoiceNo}
+      </h1>
+
+      {/* ---------------- Full Invoice Form ---------------- */}
+      <form onSubmit={handleSubmit} className="space-y-4 mb-6">
+        {/* Client Info */}
+        <div>
+          <label className="block font-semibold">Client Name</label>
+          <input
+            type="text"
+            name="clientName"
+            value={invoice.clientName || ""}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+          />
+        </div>
+
+        <div>
+          <label className="block font-semibold">Client Phone</label>
+          <input
+            type="text"
+            name="clientPhone"
+            value={invoice.clientPhone || ""}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+          />
+        </div>
+
+        <div>
+          <label className="block font-semibold">Website Name</label>
+          <input
+            type="text"
+            name="websiteName"
+            value={invoice.websiteName || ""}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+          />
+        </div>
+
+        <div>
+          <label className="block font-semibold">Website Link</label>
+          <input
+            type="text"
+            name="websiteLink"
+            value={invoice.websiteLink || ""}
+            onChange={handleChange}
+            className="w-full p-2 border rounded"
+          />
+        </div>
+
+        {/* Amounts */}
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <label className="block font-semibold">Total Amount</label>
+            <input
+              type="number"
+              name="totalAmount"
+              value={invoice.totalAmount || 0}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold">Received Amount</label>
+            <input
+              type="number"
+              value={invoice.receivedAmount || 0}
+              disabled
+              className="w-full p-2 border rounded bg-gray-100"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold">Due Amount</label>
+            <input
+              type="number"
+              value={dueAmount}
+              disabled
+              className={`w-full p-2 border rounded ${
+                dueAmount === 0
+                  ? "text-green-600 font-bold"
+                  : "text-red-600 font-bold"
+              } bg-gray-100`}
+            />
+          </div>
+        </div>
+
+        {/* Discount */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block font-semibold">Discount Type</label>
+            <select
+              name="discountType"
+              value={invoice.discount?.discountType || ""}
+              onChange={(e) => handleNestedChange(e, "discount")}
+              className="w-full p-2 border rounded"
+            >
+              <option value="">Select</option>
+              <option value="percent">Percent</option>
+              <option value="fixed">Fixed</option>
+            </select>
+          </div>
+          <div>
+            <label className="block font-semibold">Discount Amount</label>
+            <input
+              type="number"
+              name="amount"
+              value={invoice.discount?.amount || 0}
+              onChange={(e) => handleNestedChange(e, "discount")}
+              className="w-full p-2 border rounded"
+            />
+          </div>
+        </div>
+
         <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-gray-700 hover:text-black"
+          type="submit"
+          disabled={saving}
+          className="bg-green-600 text-white px-4 py-2 rounded"
         >
-          <ArrowLeft size={20} /> Back
+          {saving ? "Saving..." : "Update Invoice"}
         </button>
+      </form>
 
-        <div className="flex gap-3">
-          <a
-            href={API_ENDPOINTS.EXPORT_INVOICE_PDF(invoice._id)}
-            target="_blank"
-            className="bg-green-600 px-4 py-2 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
-          >
-            <FileDown size={18} /> PDF
-          </a>
+      {/* ---------------- Payment Update Form ---------------- */}
+      {/* ---------------- Payment Update Form ---------------- */}
+<div className="mb-6 p-4 border rounded-lg bg-gray-50">
+  <h2 className="text-lg font-bold mb-2">Add Payment</h2>
 
-          <Link
-            to={`/invoices/edit/${invoice._id}`}
-            className="bg-blue-600 px-4 py-2 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-          >
-            <Pencil size={18} /> Edit
-          </Link>
-        </div>
+  {dueAmount === 0 ? (
+    <p className="text-green-600 font-semibold">
+      ✔ All payments completed — No due left!
+    </p>
+  ) : (
+    <form onSubmit={handlePaymentSubmit} className="grid grid-cols-3 gap-4">
+      <div>
+        <input
+          type="number"
+          placeholder="Enter received amount"
+          value={newPayment}
+          onChange={(e) => setNewPayment(e.target.value)}
+          className="w-full p-2 border rounded"
+          disabled={dueAmount === 0}
+        />
       </div>
 
-      {/* Invoice Header */}
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-2">
-          Invoice #{invoice.invoiceNo}
-        </h2>
-        <p className="text-gray-500">
-          Date: {new Date(invoice.createdAt).toLocaleDateString()}
-        </p>
-
-        {/* Status Badge */}
-        <span
-          className={`mt-3 inline-block px-3 py-1 rounded-full text-white text-sm ${
-            invoice.status === "PAID"
-              ? "bg-green-600"
-              : invoice.status === "DUE"
-              ? "bg-red-500"
-              : "bg-blue-600"
-          }`}
+      <div>
+        <select
+          value={paymentType}
+          onChange={(e) => setPaymentType(e.target.value)}
+          className="w-full p-2 border rounded"
+          disabled={dueAmount === 0}
         >
-          {invoice.status}
-        </span>
-
-        {/* Status Buttons */}
-        <div className="flex gap-3 mt-4">
-          <button
-            onClick={() => updateStatus("PAID")}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-          >
-            <CheckCircle size={18} /> Mark Paid
-          </button>
-
-          <button
-            onClick={() => updateStatus("DUE")}
-            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-          >
-            <XCircle size={18} /> Mark Due
-          </button>
-        </div>
+          <option value="">Payment Type</option>
+          <option value="Cash">Cash</option>
+          <option value="UPI">UPI</option>
+          <option value="Bank Transfer">Bank Transfer</option>
+        </select>
       </div>
 
-      {/* Client Info */}
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <h3 className="font-semibold mb-2">Client Details</h3>
-        <p>{invoice.client?.name}</p>
-        <p>{invoice.client?.email}</p>
-        <p>{invoice.client?.address}</p>
-        <p>GSTIN: {invoice.client?.gstin}</p>
+      <div>
+        <button
+          type="submit"
+          disabled={saving || dueAmount === 0}
+          className="bg-blue-600 text-white px-4 py-2 rounded disabled:bg-gray-400"
+        >
+          {saving ? "Saving..." : "Add Payment"}
+        </button>
       </div>
+    </form>
+  )}
+</div>
 
-      {/* Amount Summary */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h3 className="font-semibold mb-3">Amounts</h3>
 
-        <div className="flex justify-between py-1">
-          <span>Total Amount:</span>
-          <span>₹{invoice.totalAmount}</span>
-        </div>
+      {/* ---------------- Payment History ---------------- */}
+      <div>
+        <h2 className="font-bold text-lg mb-2">Payment History</h2>
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="p-2 border">Date</th>
+              <th className="p-2 border">Amount</th>
+              <th className="p-2 border">Payment Type</th>
+            </tr>
+          </thead>
+         <tbody>
+  {invoice.paymentLogs?.map((log, idx) => (
+    <tr key={idx} className="hover:bg-gray-50">
+      <td className="p-2 border">
+        {new Date(log.date).toLocaleDateString()}
+      </td>
+      <td className="p-2 border">₹{log.amount}</td>
+      <td className="p-2 border">{log.paymentType}</td>
+      <td className="p-2 border text-center">
+        <button
+          onClick={() => deletePayment(log._id)}
+          className="text-red-600 hover:underline"
+        >
+          Delete
+        </button>
+      </td>
+    </tr>
+  ))}
 
-        <div className="flex justify-between py-1">
-          <span>Tax:</span>
-          <span>₹{invoice.totalTax}</span>
-        </div>
+  {invoice.paymentLogs?.length === 0 && (
+    <tr>
+      <td colSpan={4} className="text-center p-2 text-gray-500">
+        No payments yet
+      </td>
+    </tr>
+  )}
+</tbody>
 
-        <div className="flex justify-between py-1 font-semibold text-lg">
-          <span>Grand Total:</span>
-          <span>₹{invoice.totalAmount + invoice.totalTax}</span>
-        </div>
-
-        <div className="flex justify-between py-1 text-blue-700 font-bold">
-          <span>Due:</span>
-          <span>₹{invoice.totalDue}</span>
-        </div>
+        </table>
       </div>
     </div>
   );

@@ -74,7 +74,7 @@ const Navbar = () => {
           ))}
 
           {/* Auth Button */}
-          {isLoggedIn ? (
+          {/* {isLoggedIn ? (
             <button
               onClick={handleLogout}
               className="px-6 py-2 rounded-xl bg-red-500/70 hover:bg-red-500 text-white font-medium shadow-md backdrop-blur-md transition"
@@ -88,7 +88,7 @@ const Navbar = () => {
             >
               Login
             </button>
-          )}
+          )} */}
         </div>
 
         {/* Mobile Menu Icon */}
@@ -116,7 +116,7 @@ const Navbar = () => {
             </NavLink>
           ))}
 
-          {isLoggedIn ? (
+          {/* {isLoggedIn ? (
             <button
               onClick={() => { handleLogout(); setMenuOpen(false); }}
               className="w-full bg-red-500/70 hover:bg-red-500 text-white py-2 rounded-xl backdrop-blur-md transition font-medium"
@@ -130,7 +130,7 @@ const Navbar = () => {
             >
               Login
             </button>
-          )}
+          )} */}
         </div>
       )}
     </nav>

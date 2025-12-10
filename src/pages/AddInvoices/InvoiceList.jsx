@@ -1,28 +1,22 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import API_ENDPOINTS from "../../config/api";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { Loader2, FileDown, Eye, Trash2, PlusCircle, Printer } from "lucide-react";
+import { Loader2, Trash2, PlusCircle, Printer, Edit } from "lucide-react";
 
 export default function InvoiceList() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const printRef = useRef();
 
-  // ---------------------------
-  // Fetch All Invoices
-  // ---------------------------
   const fetchInvoices = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(API_ENDPOINTS.GET_INVOICES, {
-        withCredentials: true,
-      });
+      const res = await axios.get(API_ENDPOINTS.GET_INVOICES, { withCredentials: true });
       setInvoices(Array.isArray(res.data) ? res.data : []);
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
       toast.error("Failed to load invoices");
     } finally {
       setLoading(false);
@@ -33,281 +27,295 @@ export default function InvoiceList() {
     fetchInvoices();
   }, []);
 
-  // ---------------------------
-  // Delete Invoice
-  // ---------------------------
   const deleteInvoice = async (id) => {
     if (!confirm("Are you sure you want to delete this invoice?")) return;
     try {
       await axios.delete(API_ENDPOINTS.DELETE_INVOICE(id), { withCredentials: true });
       toast.success("Invoice deleted");
       fetchInvoices();
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
       toast.error("Delete failed");
     }
   };
 
-  // ---------------------------
-  // Print Invoice
-  // ---------------------------
 const printInvoice = (inv) => {
+  const discountAmount =
+    inv.discount?.discountType === "percent"
+      ? (inv.totalAmount * inv.discount.amount) / 100
+      : inv.discount?.amount || 0;
+
+  const finalTotal = Math.max(inv.totalAmount - discountAmount, 0);
+  const firstPayment = inv.receivedAmount || 0;
+  const firstDue = Math.max(finalTotal - firstPayment, 0);
+
+  let runningDue = firstDue;
+
+  const paymentRows = (inv.paymentLogs || [])
+    .map((log) => {
+      const oldDue = runningDue;
+      runningDue -= log.amount;
+      if (runningDue < 0) runningDue = 0;
+
+      return `
+        <tr>
+          <td>Partial Payment (${new Date(log.date).toLocaleDateString()})</td>
+          <td>₹${log.amount}</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td>₹${oldDue}</td>
+          <td>${log.paymentType}</td>
+        </tr>
+      `;
+    })
+    .join("");
+
+  const defaultTerms = `
+    1. Yearly Subscription: Client agrees to pay the annual fee.<br>
+    2. Monthly Subscription: Monthly payments must be on time.<br>
+  `;
+
   const content = `
   <html>
-    <head>
-      <title>Invoice ${inv.invoiceNo}</title>
+  <head>
+    <title>Invoice ${inv.invoiceNo}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-      <style>
-        body {
-          font-family: Arial, sans-serif;
-          margin: 0;
-          padding: 0;
-          background: #fff;
-        }
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        padding: 24px;
+        background: #F1F5F9;
+        color: #2D3748;
+      }
 
-        .container {
-          width: 820px;
-          margin: auto;
-          padding: 25px 35px;
-          border: 1px solid #ccc;
-        }
+      .container {
+        max-width: 950px;
+        margin: auto;
+        background: white;
+        padding: 28px;
+        border-radius: 8px;
+        border: 1px solid #CBD5E0;
+      }
 
-        /* HEADER WITH LOGO */
-        .header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-        }
+      /* ======= Title ======== */
+      .title {
+        text-align: center;
+        font-size: 26px;
+        font-weight: 700;
+        color: #1A365D;
+        margin-bottom: 6px;
+      }
 
-        .header img {
-          height: 70px;
-        }
+      .line {
+        width: 100%;
+        height: 3px;
+        background: #1A365D;
+        margin-bottom: 24px;
+        border-radius: 4px;
+      }
 
-        .header .company-title {
-          text-align: right;
-          font-size: 16px;
-          font-weight: bold;
-          line-height: 1.4;
-        }
+      /* ======= Top 2 Columns ======= */
+      .top-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+      }
 
-        /* TOP TITLE */
-        .title-box {
-          text-align: center;
-          margin-bottom: 30px;
-        }
-        .title-box h1 {
-          font-size: 28px;
-          margin: 0;
-          font-weight: bold;
-          letter-spacing: 2px;
-        }
-        .title-box .subtitle {
-          margin-top: 5px;
-          font-size: 13px;
-          color: #666;
-        }
+      .left-side, .right-side {
+        width: 50%;
+      }
 
-        /* DETAILS & BILL TO */
-        .details-section {
-          width: 100%;
-          border-top: 2px solid #000;
-          border-bottom: 2px solid #000;
-          padding: 10px 0;
-          margin-bottom: 25px;
-        }
+      .logo-business {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
 
-        .row {
-          display: flex;
-          justify-content: space-between;
-          margin: 5px 0;
-        }
+      .logo-business img {
+        max-height: 80px;
+        border-radius: 4px;
+      }
 
-        .col {
-          width: 48%;
-        }
+      .business-text {
+        font-size: 14px;
+        line-height: 1.5;
+      }
 
-        .label {
-          font-weight: bold;
-          margin-bottom: 3px;
-          font-size: 13px;
-        }
+      .business-text strong {
+        font-size: 16px;
+        color: #1A365D;
+      }
 
-        .value {
-          font-size: 14px;
-          margin-bottom: 3px;
-        }
+      .right-side strong {
+        color: #1A365D;
+      }
 
-        /* TABLE */
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-top: 15px;
-        }
+      /* ===== Project Box ===== */
+      .info-box {
+        border: 1px solid #CBD5E0;
+        background: #F8FAFC;
+        padding: 16px;
+        margin-top: 24px;
+        border-radius: 6px;
+      }
 
-        th {
-          background: #f0f0f0;
-          padding: 8px;
-          border: 1px solid #000;
-          font-size: 14px;
-          text-align: left;
-        }
+      .info-title {
+        font-size: 17px;
+        font-weight: 600;
+        color: #1A365D;
+        margin-bottom: 10px;
+      }
 
-        td {
-          padding: 8px;
-          border: 1px solid #000;
-          font-size: 14px;
-        }
+      /* ====== Table ======= */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 28px;
+        font-size: 14px;
+      }
 
-        /* TOTALS BOX */
-        .totals-box {
-          width: 250px;
-          float: right;
-          margin-top: 20px;
-          border: 1px solid #000;
-        }
+      th {
+        background: #1A365D;
+        color: white;
+        padding: 10px;
+        font-weight: 500;
+        border: 1px solid #2C5282;
+      }
 
-        .totals-box div {
-          display: flex;
-          justify-content: space-between;
-          padding: 8px 10px;
-          font-size: 14px;
-          border-bottom: 1px solid #000;
-        }
+      td {
+        border: 1px solid #CBD5E0;
+        padding: 10px;
+        background: white;
+      }
 
-        .totals-box div:last-child {
-          border-bottom: none;
-          font-weight: bold;
-          background: #f9f9f9;
-        }
+      tr:nth-child(even) td {
+        background: #F8FAFC;
+      }
 
-        /* NOTES */
-        .notes {
-          margin-top: 40px;
-          font-size: 14px;
-        }
+      /* ===== Signature ===== */
+      .signature {
+        margin-top: 40px;
+        text-align: right;
+        font-weight: 600;
+        color: #1A365D;
+      }
+    </style>
+  </head>
 
-        /* SIGNATURE */
-        .signature-box {
-          margin-top: 60px;
-          text-align: right;
-        }
-        .signature-box img {
-          height: 70px;
-        }
-        .signature-label {
-          margin-top: 5px;
-          font-size: 14px;
-          font-weight: bold;
-        }
+  <body>
+    <div class="container">
 
-        /* THANK YOU */
-        .thanks {
-          margin-top: 40px;
-          text-align: center;
-          font-size: 22px;
-          font-weight: bold;
-          letter-spacing: 3px;
-        }
-      </style>
+      <!-- TITLE -->
+      <div class="title">Professional Web Development Invoice</div>
+      <div class="line"></div>
 
-    </head>
-    <body>
+      <!-- 2 Column Layout -->
+      <div class="top-row">
 
-      <div class="container">
-
-        <!-- HEADER WITH LOGO -->
-        <div class="header">
-          <img src="/logo.png" alt="Logo">
-
-          <div class="company-title">
-            Vyapaarsetu Business Solutions<br>
-            Phone: 8177819283<br>
-            Email: vyapaarsetu2025@gmail.com
-          </div>
-        </div>
-
-        <!-- TOP TITLE -->
-        <div class="title-box">
-          <h1>WEB DESIGN INVOICE</h1>
-          <div class="subtitle">THANK YOU</div>
-        </div>
-
-        <!-- DETAILS -->
-        <div class="details-section">
-          <div class="row">
-            <div class="col">
-              <div class="label">DATE:</div>
-              <div class="value">${new Date(inv.dateOfSale || inv.createdAt).toLocaleDateString()}</div>
-            </div>
-            <div class="col">
-              <div class="label">INVOICE NO:</div>
-              <div class="value">${inv.invoiceNo}</div>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col">
-              <div class="label">FROM:</div>
-              <div class="value"><strong>Vyapaarsetu Business Solutions</strong></div>
-              <div class="value">Phone: 8177819283</div>
-              <div class="value">Email: vyapaarsetu2025@gmail.com</div>
-            </div>
-
-            <div class="col">
-              <div class="label">BILL TO:</div>
-              <div class="value"><strong>${inv.clientName}</strong></div>
-              <div class="value">Phone: ${inv.clientPhone}</div>
-              <div class="value">Website: ${inv.websiteName}</div>
-              <div class="value">Link: ${inv.websiteLink}</div>
+        <!-- LEFT -->
+        <div class="left-side">
+          <div class="logo-business">
+            <img src="/logo.png" alt="Logo"/>
+            <div class="business-text">
+              <strong>Vyapaarsetu Business Solutions</strong><br>
+              Phone: 8177819283 <br>
+              Email: vyapaarsetu2025@gmail.com <br>
+              Website: vyapaarsetu-business-solutions.vercel.app
             </div>
           </div>
         </div>
 
-        <!-- MAIN TABLE -->
-        <table>
-          <thead>
-            <tr>
-              <th style="width:50%">DESCRIPTION</th>
-              <th style="width:15%">AMOUNT</th>
-              <th style="width:15%">RECEIVED</th>
-              <th style="width:15%">DUE</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>${inv.websiteName} – Web Design Service</td>
-              <td>₹${inv.totalAmount}</td>
-              <td>₹${inv.receivedAmount}</td>
-              <td>₹${inv.dueAmount}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <!-- TOTALS BOX -->
-        <div class="totals-box">
-          <div><span>SUBTOTAL</span><span>₹${inv.totalAmount}</span></div>
-          <div><span>DISCOUNT</span><span>₹0</span></div>
-          <div><span>TOTAL</span><span>₹${inv.totalAmount}</span></div>
+        <!-- RIGHT -->
+        <div class="right-side">
+          <strong>Client Name:</strong> ${inv.clientName} <br>
+          <strong>Phone:</strong> ${inv.clientPhone} <br>
+          <strong>Email:</strong> ${inv.clientEmail || "-"} <br>
+          <strong>Invoice No:</strong> ${inv.invoiceNo} <br>
+          <strong>Date:</strong> ${new Date(inv.dateOfSale).toLocaleDateString()}
         </div>
-
-        <div style="clear: both;"></div>
-
-        <!-- SIGNATURE -->
-        <div class="signature-box">
-          <img src="/signature.png" alt="Signature">
-          <div class="signature-label">Authorized Signature</div>
-        </div>
-
-        <div class="thanks">THANK YOU</div>
 
       </div>
 
-    </body>
+      <!-- PROJECT DETAILS -->
+      <div class="info-box">
+        <div class="info-title">Project Details</div>
+
+        <strong>Website Name:</strong> ${inv.websiteName} <br>
+        <strong>Website Link:</strong> ${inv.websiteLink} <br>
+        <strong>Validity End:</strong> ${
+          inv.validityEnd ? new Date(inv.validityEnd).toLocaleDateString() : "-"
+        } <br>
+
+        ${
+          inv.maintenance?.amount
+            ? `<strong>Maintenance Amount:</strong> ₹${inv.maintenance.amount} <br>`
+            : ""
+        }
+
+        ${
+          inv.maintenance?.nextDueDate
+            ? `<strong>Next Maintenance Due:</strong> ${new Date(
+                inv.maintenance.nextDueDate
+              ).toLocaleDateString()}`
+            : ""
+        }
+      </div>
+
+      <!-- PAYMENT TABLE -->
+      <table>
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Total</th>
+            <th>Discount</th>
+            <th>Final Total</th>
+            <th>Received</th>
+            <th>Remaining Due</th>
+            <th>Payment Type</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr>
+            <td>${inv.websiteName} Web Design Service</td>
+            <td>₹${inv.totalAmount}</td>
+            <td>₹${discountAmount}</td>
+            <td>₹${finalTotal}</td>
+            <td>₹${firstPayment}</td>
+            <td>₹${firstDue}</td>
+            <td>${inv.paymentType || "-"}</td>
+          </tr>
+
+          ${paymentRows}
+        </tbody>
+      </table>
+
+      <!-- NOTES -->
+      <div style="margin-top: 24px; font-size: 14px;">
+        ${
+          inv.notes
+            ? `<strong>Notes:</strong> ${inv.notes}<br><br>`
+            : ""
+        }
+
+        <strong>Terms & Conditions:</strong><br>
+        ${inv.termsAndConditions || defaultTerms}
+      </div>
+
+      <!-- SIGNATURE -->
+      <div class="signature">
+        ___________________________<br>
+        Authorized Signatory
+      </div>
+
+    </div>
+  </body>
   </html>
   `;
 
-  const printWindow = window.open("", "_blank", "width=900,height=700");
+  const printWindow = window.open("", "_blank");
   printWindow.document.write(content);
   printWindow.document.close();
   printWindow.print();
@@ -316,99 +324,105 @@ const printInvoice = (inv) => {
 
 
 
-
-  // ---------------------------
-  // Filter invoices
-  // ---------------------------
-  const filteredInvoices = (invoices || []).filter((inv) =>
-    inv.clientName.toLowerCase().includes(search.toLowerCase()) ||
-    inv.invoiceNo.toLowerCase().includes(search.toLowerCase())
+  const filteredInvoices = invoices.filter(
+    (inv) =>
+      inv.clientName.toLowerCase().includes(search.toLowerCase()) ||
+      inv.invoiceNo.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
     <div className="p-4 sm:p-6">
-      {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Invoices</h1>
+        <h1 className="text-2xl font-bold">Invoices</h1>
         <Link
           to="/admin-dashboard/create-invoice"
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg"
         >
-          <PlusCircle size={20} />
-          Create Invoice
+          <PlusCircle size={20} /> Create Invoice
         </Link>
       </div>
 
-      {/* Search */}
       <div className="mb-4">
         <input
           type="text"
           placeholder="Search by client or invoice no..."
-          className="w-full p-3 border rounded-lg shadow-sm focus:ring focus:ring-blue-300 outline-none"
+          className="w-full p-3 border rounded-lg"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 
-      {/* Table */}
       <div className="overflow-x-auto bg-white shadow rounded-lg">
-        <table className="w-full text-left border-collapse">
+        <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-gray-100 text-gray-700">
+            <tr className="bg-gray-100">
               <th className="p-3 border">Invoice No</th>
               <th className="p-3 border">Client</th>
-              <th className="p-3 border">Amount</th>
+              <th className="p-3 border">Website</th>
+              <th className="p-3 border">Total</th>
+              <th className="p-3 border">Received</th>
+              <th className="p-3 border">Due</th>
               <th className="p-3 border">Date</th>
               <th className="p-3 border text-center">Actions</th>
             </tr>
           </thead>
-
           <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={5} className="text-center p-6">
-                  <Loader2 className="animate-spin w-10 h-10 text-blue-600 mx-auto" />
-                </td>
-              </tr>
-            ) : filteredInvoices.length > 0 ? (
-              filteredInvoices.map((inv) => (
-                <tr key={inv._id} className="hover:bg-gray-50">
-                  <td className="p-3 border font-semibold">{inv.invoiceNo}</td>
-                  <td className="p-3 border">{inv.clientName}</td>
-                  <td className="p-3 border">₹{inv.totalAmount}</td>
-                  <td className="p-3 border">{new Date(inv.dateOfSale || inv.createdAt).toLocaleDateString()}</td>
-                  <td className="p-3 border flex items-center justify-center gap-3">
-                    <Link to={`/invoices/${inv._id}`} className="text-blue-600 hover:text-blue-800" title="View Invoice">
-                      <Eye size={20} />
-                    </Link>
-                    {API_ENDPOINTS.EXPORT_INVOICE_PDF && (
-                      <a
-                        href={API_ENDPOINTS.EXPORT_INVOICE_PDF(inv._id)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-green-600 hover:text-green-800"
-                        title="Download PDF"
-                      >
-                        <FileDown size={20} />
-                      </a>
-                    )}
-                    <button onClick={() => printInvoice(inv)} className="text-indigo-600 hover:text-indigo-800" title="Print Invoice">
-                      <Printer size={20} />
-                    </button>
-                    <button onClick={() => deleteInvoice(inv._id)} className="text-red-600 hover:text-red-800" title="Delete">
-                      <Trash2 size={20} />
-                    </button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={5} className="text-center p-6 text-gray-500">
-                  No invoices found
-                </td>
-              </tr>
-            )}
-          </tbody>
+  {loading ? (
+    <tr>
+      <td colSpan={8} className="text-center p-6">
+        <Loader2 className="animate-spin w-10 h-10 mx-auto text-blue-600" />
+      </td>
+    </tr>
+  ) : filteredInvoices.length > 0 ? (
+    filteredInvoices.map((inv) => {
+      const discountAmount =
+        inv.discount?.discountType === "percent"
+          ? (inv.totalAmount * inv.discount.amount) / 100
+          : inv.discount?.amount || 0;
+
+      const finalTotal = Math.max(inv.totalAmount - discountAmount, 0);
+      const due = Math.max(finalTotal - inv.receivedAmount, 0);
+
+      return (
+        <tr key={inv._id} className="hover:bg-gray-50">
+          <td className="p-3 border">{inv.invoiceNo}</td>
+          <td className="p-3 border">{inv.clientName}</td>
+          <td className="p-3 border">{inv.websiteName}</td>
+          <td className="p-3 border">₹{finalTotal}</td>
+          <td className="p-3 border">₹{inv.receivedAmount}</td>
+          <td
+            className={`p-3 border font-semibold ${
+              due === 0 ? "text-green-600" : "text-red-600"
+            }`}
+          >
+            ₹{due}
+          </td>
+          <td className="p-3 border">{new Date(inv.dateOfSale).toLocaleDateString()}</td>
+          <td className="p-3 border flex justify-center gap-3">
+            <Link to={`/admin-dashboard/edit-invoice/${inv._id}`} title="Edit">
+              <Edit className="text-green-600" />
+            </Link>
+
+            <button onClick={() => printInvoice(inv)} title="Print">
+              <Printer className="text-indigo-600" />
+            </button>
+
+            <button onClick={() => deleteInvoice(inv._id)} title="Delete">
+              <Trash2 className="text-red-600" />
+            </button>
+          </td>
+        </tr>
+      );
+    })
+  ) : (
+    <tr>
+      <td colSpan={8} className="text-center p-6 text-gray-500">
+        No invoices found
+      </td>
+    </tr>
+  )}
+</tbody>
+
         </table>
       </div>
     </div>

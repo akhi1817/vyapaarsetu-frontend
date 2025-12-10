@@ -99,7 +99,6 @@ const printInvoice = (inv) => {
         border: 1px solid #CBD5E0;
       }
 
-      /* ======= Title ======== */
       .title {
         text-align: center;
         font-size: 26px;
@@ -116,7 +115,6 @@ const printInvoice = (inv) => {
         border-radius: 4px;
       }
 
-      /* ======= Top 2 Columns ======= */
       .top-row {
         display: flex;
         justify-content: space-between;
@@ -152,7 +150,6 @@ const printInvoice = (inv) => {
         color: #1A365D;
       }
 
-      /* ===== Project Box ===== */
       .info-box {
         border: 1px solid #CBD5E0;
         background: #F8FAFC;
@@ -168,7 +165,6 @@ const printInvoice = (inv) => {
         margin-bottom: 10px;
       }
 
-      /* ====== Table ======= */
       table {
         width: 100%;
         border-collapse: collapse;
@@ -194,7 +190,6 @@ const printInvoice = (inv) => {
         background: #F8FAFC;
       }
 
-      /* ===== Signature ===== */
       .signature {
         margin-top: 40px;
         text-align: right;
@@ -207,14 +202,10 @@ const printInvoice = (inv) => {
   <body>
     <div class="container">
 
-      <!-- TITLE -->
       <div class="title">Professional Web Development Invoice</div>
       <div class="line"></div>
 
-      <!-- 2 Column Layout -->
       <div class="top-row">
-
-        <!-- LEFT -->
         <div class="left-side">
           <div class="logo-business">
             <img src="/logo.png" alt="Logo"/>
@@ -227,7 +218,6 @@ const printInvoice = (inv) => {
           </div>
         </div>
 
-        <!-- RIGHT -->
         <div class="right-side">
           <strong>Client Name:</strong> ${inv.clientName} <br>
           <strong>Phone:</strong> ${inv.clientPhone} <br>
@@ -235,18 +225,19 @@ const printInvoice = (inv) => {
           <strong>Invoice No:</strong> ${inv.invoiceNo} <br>
           <strong>Date:</strong> ${new Date(inv.dateOfSale).toLocaleDateString()}
         </div>
-
       </div>
 
-      <!-- PROJECT DETAILS -->
       <div class="info-box">
         <div class="info-title">Project Details</div>
 
         <strong>Website Name:</strong> ${inv.websiteName} <br>
         <strong>Website Link:</strong> ${inv.websiteLink} <br>
-        <strong>Validity End:</strong> ${
-          inv.validityEnd ? new Date(inv.validityEnd).toLocaleDateString() : "-"
-        } <br>
+
+        ${
+          inv.validityEnd
+            ? `<strong>Validity End:</strong> ${new Date(inv.validityEnd).toLocaleDateString()} <br>`
+            : ""
+        }
 
         ${
           inv.maintenance?.amount
@@ -258,12 +249,11 @@ const printInvoice = (inv) => {
           inv.maintenance?.nextDueDate
             ? `<strong>Next Maintenance Due:</strong> ${new Date(
                 inv.maintenance.nextDueDate
-              ).toLocaleDateString()}`
+              ).toLocaleDateString()} <br>`
             : ""
         }
       </div>
 
-      <!-- PAYMENT TABLE -->
       <table>
         <thead>
           <tr>
@@ -292,7 +282,6 @@ const printInvoice = (inv) => {
         </tbody>
       </table>
 
-      <!-- NOTES -->
       <div style="margin-top: 24px; font-size: 14px;">
         ${
           inv.notes
@@ -304,7 +293,6 @@ const printInvoice = (inv) => {
         ${inv.termsAndConditions || defaultTerms}
       </div>
 
-      <!-- SIGNATURE -->
       <div class="signature">
         ___________________________<br>
         Authorized Signatory
@@ -320,6 +308,7 @@ const printInvoice = (inv) => {
   printWindow.document.close();
   printWindow.print();
 };
+
 
 
 

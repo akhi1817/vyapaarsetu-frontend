@@ -76,12 +76,15 @@ const printInvoice = (inv) => {
     2. Monthly Subscription: Monthly payments must be on time.<br>
   `;
 
+  // Use full URLs for images
+  const logoURL = "https://vyapaarsetu-business-solutions.vercel.app/logo.png";
+  const signatureURL = "https://vyapaarsetu-business-solutions.vercel.app/signature.jpg";
+
   const content = `
   <html>
   <head>
     <title>Invoice ${inv.invoiceNo}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
     <style>
       body {
         font-family: 'Inter', sans-serif;
@@ -196,6 +199,13 @@ const printInvoice = (inv) => {
         font-weight: 600;
         color: #1A365D;
       }
+
+      @media print {
+        body, table, th, td {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+      }
     </style>
   </head>
 
@@ -208,8 +218,7 @@ const printInvoice = (inv) => {
       <div class="top-row">
         <div class="left-side">
           <div class="logo-business">
-            <img src="/logo.png" alt="Logo" style="width: 100px; height:120px;" />
-
+            <img src="${logoURL}" alt="Logo" style="width: 100px; height:120px;" />
             <div class="business-text">
               <strong>Vyapaarsetu Business Solutions</strong><br>
               Phone: 8177819283 <br>
@@ -230,29 +239,11 @@ const printInvoice = (inv) => {
 
       <div class="info-box">
         <div class="info-title">Project Details</div>
-
         <strong>Website Name:</strong> ${inv.websiteName} <br>
         <strong>Website Link:</strong> ${inv.websiteLink} <br>
-
-        ${
-          inv.validityEnd
-            ? `<strong>Validity End:</strong> ${new Date(inv.validityEnd).toLocaleDateString()} <br>`
-            : ""
-        }
-
-        ${
-          inv.maintenance?.amount
-            ? `<strong>Maintenance Amount:</strong> ₹${inv.maintenance.amount} <br>`
-            : ""
-        }
-
-        ${
-          inv.maintenance?.nextDueDate
-            ? `<strong>Next Maintenance Due:</strong> ${new Date(
-                inv.maintenance.nextDueDate
-              ).toLocaleDateString()} <br>`
-            : ""
-        }
+        ${inv.validityEnd ? `<strong>Validity End:</strong> ${new Date(inv.validityEnd).toLocaleDateString()} <br>` : ""}
+        ${inv.maintenance?.amount ? `<strong>Maintenance Amount:</strong> ₹${inv.maintenance.amount} <br>` : ""}
+        ${inv.maintenance?.nextDueDate ? `<strong>Next Maintenance Due:</strong> ${new Date(inv.maintenance.nextDueDate).toLocaleDateString()} <br>` : ""}
       </div>
 
       <table>
@@ -267,7 +258,6 @@ const printInvoice = (inv) => {
             <th>Payment Type</th>
           </tr>
         </thead>
-
         <tbody>
           <tr>
             <td>${inv.websiteName} Web Design Service</td>
@@ -278,28 +268,21 @@ const printInvoice = (inv) => {
             <td>₹${firstDue}</td>
             <td>${inv.paymentType || "-"}</td>
           </tr>
-
           ${paymentRows}
         </tbody>
       </table>
 
       <div style="margin-top: 24px; font-size: 14px;">
-        ${
-          inv.notes
-            ? `<strong>Notes:</strong> ${inv.notes}<br><br>`
-            : ""
-        }
-
+        ${inv.notes ? `<strong>Notes:</strong> ${inv.notes}<br><br>` : ""}
         <strong>Terms & Conditions:</strong><br>
         ${inv.termsAndConditions || defaultTerms}
       </div>
 
       <div class="signature">
-  <img src="/signature.jpg" alt="Signature" style="width: 150px; height: auto; margin-bottom: 6px;" />
-  <br>
-  <strong>Authorized Signatory</strong>
-</div>
-
+        <img src="${signatureURL}" alt="Signature" style="width: 150px; height: auto; margin-bottom: 6px;" />
+        <br>
+        <strong>Authorized Signatory</strong>
+      </div>
 
     </div>
   </body>
@@ -309,8 +292,14 @@ const printInvoice = (inv) => {
   const printWindow = window.open("", "_blank");
   printWindow.document.write(content);
   printWindow.document.close();
-  printWindow.print();
+
+  // Ensure images are loaded before printing
+  printWindow.onload = () => {
+    printWindow.focus();
+    printWindow.print();
+  };
 };
+
 
 
 

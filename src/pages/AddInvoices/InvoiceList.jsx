@@ -202,13 +202,14 @@ const printInvoice = (inv) => {
   <body>
     <div class="container">
 
-      <div class="title">Professional Web Development Invoice</div>
+      <div class="title">Invoice</div>
       <div class="line"></div>
 
       <div class="top-row">
         <div class="left-side">
           <div class="logo-business">
-            <img src="/logo.png" alt="Logo"/>
+            <img src="/logo.png" alt="Logo" style="width: 100px; height:120px;" />
+
             <div class="business-text">
               <strong>Vyapaarsetu Business Solutions</strong><br>
               Phone: 8177819283 <br>
@@ -294,9 +295,11 @@ const printInvoice = (inv) => {
       </div>
 
       <div class="signature">
-        ___________________________<br>
-        Authorized Signatory
-      </div>
+  <img src="/signature.jpg" alt="Signature" style="width: 150px; height: auto; margin-bottom: 6px;" />
+  <br>
+  <strong>Authorized Signatory</strong>
+</div>
+
 
     </div>
   </body>

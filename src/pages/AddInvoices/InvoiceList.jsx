@@ -52,24 +52,25 @@ const printInvoice = (inv) => {
   let runningDue = firstDue;
 
   const paymentRows = (inv.paymentLogs || [])
-    .map((log) => {
-      const oldDue = runningDue;
-      runningDue -= log.amount;
-      if (runningDue < 0) runningDue = 0;
+  .map((log) => {
+    const oldDue = runningDue;
+    runningDue -= log.amount;
+    if (runningDue < 0) runningDue = 0;
 
-      return `
-        <tr>
-          <td>Partial Payment (${new Date(log.date).toLocaleDateString()})</td>
-          <td>₹${log.amount}</td>
-          <td>-</td>
-          <td>-</td>
-          <td>-</td>
-          <td>₹${oldDue}</td>
-          <td>${log.paymentType}</td>
-        </tr>
-      `;
-    })
-    .join("");
+    return `
+      <tr>
+        <td>Partial Payment (${new Date(log.date).toLocaleDateString()})</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>₹${log.amount}</td>
+        <td>₹${oldDue}</td>
+        <td>${log.paymentType || "-"}</td> <!-- ✅ each payment log's type -->
+      </tr>
+    `;
+  })
+  .join("");
+
 
   const defaultTerms = `
     1. Yearly Subscription: Client agrees to pay the annual fee.<br>
@@ -266,7 +267,7 @@ const printInvoice = (inv) => {
             <td>₹${finalTotal}</td>
             <td>₹${firstPayment}</td>
             <td>₹${firstDue}</td>
-            <td>${inv.paymentType || "-"}</td>
+            <td>${ inv.paymentType || "-"}</td> <!-- main invoice type fallback -->
           </tr>
           ${paymentRows}
         </tbody>
@@ -299,6 +300,7 @@ const printInvoice = (inv) => {
     printWindow.print();
   };
 };
+
 
 
 

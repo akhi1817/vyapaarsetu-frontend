@@ -18,6 +18,7 @@ import AdminDashboard from '../Admin/AdminDashboard';
 import CreateInvoice from '../AddInvoices/CreateInvoice';
 import InvoiceList from '../AddInvoices/InvoiceList';
 import EditInvoice from '../AddInvoices/EditInvoice';
+import Services from '../../components/Services/Services';
 
 const Routing = () => {
   return (
@@ -27,6 +28,7 @@ const Routing = () => {
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
+        <Route path='/services' element={<Services/>}/>
         <Route path="/features" element={<Features />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="*" element={<FallbackRoute />} />

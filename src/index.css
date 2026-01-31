@@ -110,3 +110,16 @@
   animation: cardStaggerUp 0.8s ease-out forwards;
 }
 
+.shimmer-text {
+  position: relative;
+  background: linear-gradient(90deg, #ffffff 0%, #888888 20%, #ffffff 40%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 2.5s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% center; }
+  100% { background-position: 0% center; }
+}

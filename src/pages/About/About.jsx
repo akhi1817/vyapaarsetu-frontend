@@ -1,116 +1,86 @@
 import React from "react";
+import { motion } from "framer-motion";
+import { FaCode, FaRocket, FaUserTie, FaTools } from "react-icons/fa";
+
+const aboutCards = [
+  {
+    icon: <FaUserTie className="w-12 h-12 text-[#4F46E5] shimmer-text" />,
+    title: "Who I Am",
+    desc: "I am a MERN stack developer helping brands, startups, and founders bring their digital ideas to life. With clean code, smooth UX, and solid architecture — I build products that scale.",
+  },
+  {
+    icon: <FaRocket className="w-12 h-12 text-[#4F46E5] shimmer-text" />,
+    title: "My Vision",
+    desc: "To empower businesses with modern, high-performance web solutions that help them grow, automate, and reach more customers worldwide.",
+  },
+  {
+    icon: <FaCode className="w-12 h-12 text-[#4F46E5] shimmer-text" />,
+    title: "What I Do",
+    desc: "From portfolio websites to complete MERN applications — dashboards, admin panels, products, MVPs, and full digital solutions that make your business future-ready.",
+  },
+  {
+    icon: <FaTools className="w-12 h-12 text-[#4F46E5] shimmer-text" />,
+    title: "How I Work",
+    desc: "Clear communication, milestone-based delivery, transparent workflow, and responsive support. Every project is crafted with attention to detail.",
+  },
+];
 
 const About = () => {
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-16">
-      <div className="container mx-auto px-6 lg:px-16">
+    <section id="about" className="py-24 bg-[#0A0A0A] text-white">
+      <div className="max-w-6xl mx-auto px-6">
+        
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold text-emerald-600 mb-4">
-            About <span className="text-slate-700">VyapaarSetu</span>
-          </h1>
-          <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-            Empowering businesses with smarter inventory management, automated GST reports,
-            and next-gen digital tools designed to simplify trade and accelerate growth.
+          <h2 className="text-4xl font-semibold mb-4 shimmer-text inline-block relative">
+            About Me
+            <span className="absolute left-1/2 -bottom-2 transform -translate-x-1/2 w-24 h-0.5 bg-linear-to-r from-transparent via-[#4F46E5] to-transparent"></span>
+          </h2>
+          <p className="text-gray-300 max-w-2xl mx-auto text-lg leading-relaxed">
+            I'm committed to building strong digital foundations for brands and founders.  
+            Clean UI, smooth experiences, and products engineered for performance — that's my craft.
           </p>
         </div>
 
-        {/* Our Story */}
-        <section className="mb-20 grid md:grid-cols-2 gap-10 items-center">
-          <div>
-            <h2 className="text-2xl font-semibold text-emerald-600 mb-3">
-              Our Story
-            </h2>
-            <p className="text-gray-600 leading-relaxed">
-              VyapaarSetu was founded with a simple vision — to make business management
-              effortless for every entrepreneur. We began by creating an
-              <span className="font-medium text-emerald-700">
-                {" "}Inventory Management System with GST reporting
-              </span>{" "}
-              tailored for wholesalers, traders, and shop owners.
-              <br />
-              <br />
-              Along the way, we also expanded into
-              <span className="font-medium text-emerald-700">
-                {" "}custom e-commerce solutions
-              </span>{" "}
-              — building websites for clothing brands, jewellery stores, and
-              online sellers with complete order management systems.
-              <br />
-              <br />
-              Our goal has always been to make digital transformation simple,
-              smart, and accessible for every business.
-            </p>
-          </div>
-          <div>
-            <img
-              src="https://img.freepik.com/free-vector/team-concept-illustration_114360-678.jpg"
-              alt="Our Story"
-              className="rounded-2xl shadow-lg"
-            />
-          </div>
-        </section>
+        {/* Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-10">
+          {aboutCards.map((item, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: index * 0.15 }}
+              viewport={{ once: true }}
+              className="p-8 bg-[#111111] rounded-2xl shadow-lg border border-[#1F1F1F] hover:border-[#4F46E5]/40 transition group"
+            >
+              <div className="mb-4">{item.icon}</div>
+              <h3 className="text-xl font-semibold mb-2 shimmer-text inline-block relative">
+                {item.title}
+                <span className="absolute left-1/2 -bottom-1 transform -translate-x-1/2 
+                                 w-16 h-0.5 bg-linear-to-r from-[#4F46E5] to-transparent"></span>
+              </h3>
+              <p className="text-gray-400 leading-relaxed">{item.desc}</p>
+            </motion.div>
+          ))}
+        </div>
 
-        {/* Vision & Mission */}
-        <section className="grid md:grid-cols-2 gap-10 mb-20">
-          <div className="bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition">
-            <h3 className="text-2xl font-semibold text-emerald-600 mb-4">
-              Our Vision
-            </h3>
-            <p className="text-gray-600 leading-relaxed">
-              To become India’s trusted digital bridge for businesses —
-              connecting manufacturers, wholesalers, and retailers through
-              automation and intelligence.
-              <br />
-              <br />
-              In the coming years, VyapaarSetu aims to expand into diverse
-              industries such as{" "}
-              <span className="font-medium text-emerald-700">
-                hospitality, healthcare, and large-scale e-commerce
-              </span>, helping them digitalize their operations with ease.
-            </p>
-          </div>
-
-          <div className="bg-white p-8 rounded-2xl shadow-md hover:shadow-lg transition">
-            <h3 className="text-2xl font-semibold text-emerald-600 mb-4">
-              Our Mission
-            </h3>
-            <p className="text-gray-600 leading-relaxed">
-              To simplify business workflows through technology — whether it’s
-              managing inventory, generating GST-compliant reports, or running
-              online stores efficiently.
-              <br />
-              <br />
-              Our mission is to empower every entrepreneur to work smarter,
-              automate operations, and focus on what truly matters — growth.
-            </p>
-          </div>
-        </section>
-
-        {/* Founder / Closing Section */}
-        <section className="text-center max-w-3xl mx-auto">
-          <h3 className="text-2xl font-semibold text-emerald-600 mb-3">
-            Meet the Founder
-          </h3>
-          <p className="text-gray-600 mb-6">
-            Hi, I’m{" "}
-            <span className="font-medium text-slate-800">Akhilesh Kumbhar</span>,  
-            the creator of VyapaarSetu.  
-            As a passionate MERN developer, I focus on building modern
-            business solutions — from inventory and GST automation to
-            full-scale e-commerce websites.
+        {/* Bottom Text */}
+        <motion.div
+          initial={{ opacity: 0, y: 25 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.4 }}
+          viewport={{ once: true }}
+          className="text-center mt-16 max-w-3xl mx-auto"
+        >
+          <p className="text-gray-300 text-lg leading-relaxed">
+            Whether you're building your first MVP, upgrading an existing system,  
+            or crafting your personal brand — I am here to make your digital journey smooth,  
+            functional, and future-proof.
           </p>
-          <p className="text-emerald-700 font-semibold">
-            “Technology should empower, not complicate — and that’s the bridge we’re building.”
-          </p>
-          
-        </section>
+        </motion.div>
       </div>
-
-      
-    </div>
+    </section>
   );
 };
 
 export default About;
-

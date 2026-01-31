@@ -1,5 +1,14 @@
 import React from "react";
-import { ArrowRight, BarChart3, FileText, Boxes } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
+import About from "../About/About";
+import Services from '../../components/Services/Services';
+import Contact from '../Contact/Contact';
+import Features from '../Features/Features';
+import { FaWhatsapp } from "react-icons/fa";
+
+// Import your internal components
+
 
 const Home = () => {
   const handleWhatsAppClick = () => {
@@ -7,135 +16,174 @@ const Home = () => {
   };
 
   return (
-    <div className="bg-gray-50 relative animate-fadeIn">
+    <div className="bg-[#0A0A0A] text-white overflow-hidden">
+
       {/* WhatsApp Floating Button */}
-    <div
-  onClick={handleWhatsAppClick}
-  className="fixed bottom-6 right-6 bg-[#25D366] hover:bg-[#1ebe5d] p-3 rounded-full shadow-[0_0_25px_rgba(0,0,0,0.2)] cursor-pointer transition-all duration-300 z-999 animate-wp flex items-center justify-center"
-  title="Chat on WhatsApp"
+<button
+  onClick={() => window.open("https://wa.me/91XXXXXXXXXX", "_blank")}
+  className="
+    fixed bottom-6 right-6 
+    bg-[#25D366] 
+    text-white 
+    p-4 
+    rounded-full 
+    shadow-xl 
+    cursor-pointer 
+    transition-all duration-300 
+    z-99999
+  "
 >
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    width="40px"
-    height="40px"
-    fill="white"
-    className="drop-shadow-lg"
-  >
-    <path d="M12 2C6.486 2 2 6.486 2 12c0 1.938.551 3.766 1.588 5.355L2 22l4.777-1.543A9.935 9.935 0 0 0 12 22c5.514 0 10-4.486 10-10S17.514 2 12 2zm0 
-      18a7.951 7.951 0 0 1-4.271-1.238l-.305-.184-2.836.915.935-2.77-.195-.313A7.951 7.951 0 0 1 4 
-      12c0-4.411 3.589-8 8-8s8 3.589 8 8-3.589 8-8 
-      8zm3.671-5.639c-.2-.1-1.181-.582-1.364-.648-.183-.067-.316-.1-.449.1s-.515.648-.631.782-.233.15-.433.05c-.2-.1-.843-.31-1.604-.99a6.027 
-      6.027 0 0 1-1.115-1.385c-.117-.2-.013-.308.088-.407.09-.089.2-.233.3-.35.1-.117.133-.2.2-.333.067-.133.033-.25-.017-.35-.05-.1-.449-1.081-.616-1.481-.162-.389-.327-.336-.449-.341-.117-.005-.25-.005-.383-.005a.739.739 
-      0 0 0-.533.25c-.183.2-.7.683-.7 1.665s.717 1.935.816 2.066c.1.133 1.409 2.15 3.418 
-      3.012.478.206.85.328 1.141.419.478.15.914.129 
-      1.257.078.383-.057 1.181-.482 1.348-.948.167-.467.167-.867.117-.948-.05-.084-.183-.133-.383-.233z" />
-  </svg>
-</div>
+  <FaWhatsapp size={35} />
+</button>
 
 
-      {/* Hero Section */}
-      <section className="pt-24 pb-16 lg:pt-32 lg:pb-20 bg-linear-to-b from-emerald-50 to-white">
-        <div className="container mx-auto px-6 lg:px-16 flex flex-col-reverse lg:flex-row items-center gap-12">
-          
-          {/* Text Content */}
-          <div className="flex-1 text-center lg:text-left animate-slideUp">
-            <h1 className="text-4xl lg:text-5xl font-bold text-slate-800 mb-4 leading-tight animate-fadeUp">
-              Simplify Your <span  className="text-emerald-600">Business Operations</span> with VyapaarSetu
-            </h1>
 
-            <p className="text-gray-600 mb-6 text-lg opacity-0 animate-fadeInSlow">
-              Manage inventory, automate GST reports, and grow your business with
-              our modern, easy-to-use platform built for wholesalers and retailers.
-            </p>
+      {/* HERO SECTION */}
+      <section className="relative min-h-screen flex items-center justify-center px-6 pt-24 pb-10">
+        
+        {/* Background Glow */}
+        <div className="absolute inset-0 bg-linear-to-br from-[#111] via-[#0A0A0A] to-black"></div>
+        <div className="absolute w-[500px] h-[500px] bg-[#4F46E5]/20 blur-[130px] rounded-full top-10 left-20"></div>
+        <div className="absolute w-[500px] h-[500px] bg-emerald-500/10 blur-[130px] rounded-full bottom-0 right-10"></div>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <button
-                onClick={() => (window.location.href = "/contact")}
-className="bg-emerald-600 text-white px-8 py-3 rounded-lg hover:bg-emerald-700 transition transform flex items-center justify-center gap-2 animate-cta"
-              >
-                Get Started <ArrowRight className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => (window.location.href = "/features")}
-className="bg-emerald-600 text-white px-8 py-3 rounded-lg hover:bg-emerald-700 transition transform flex items-center justify-center gap-2 animate-cta"
-              >
-                Learn More
-              </button>
-            </div>
-          </div>
-
-          {/* Hero Image */}
-          <div className="flex-1 animate-float-strong">
-  <img
-    src="https://img.freepik.com/free-vector/business-team-discussing-ideas-startup_74855-4380.jpg"
-    alt="Business"
-    className="w-full rounded-2xl shadow-xl border border-white/30"
-  />
-</div>
-
-        </div>
-      </section>
-
-      {/* Trusted Section */}
-      <section className="py-12 bg-white border-t border-gray-100 animate-fadeIn">
-        <div className="container mx-auto px-6 lg:px-16 text-center">
-          <h2 className="text-xl font-semibold text-gray-700 mb-6">
-            Trusted by growing businesses in multiple industries
-          </h2>
-          <div className="flex flex-wrap justify-center gap-8 text-gray-500 text-sm">
-            <span>Retail</span>
-            <span>Wholesale</span>
-            <span>Jewellery</span>
-          </div>
-        </div>
-      </section>
-
-      {/* Feature Highlights */}
-      <section id="features" className="py-20 bg-gray-50 animate-fadeInSlow">
-        <div className="container mx-auto px-6 lg:px-16 text-center">
-          <h2 className="text-3xl font-bold text-emerald-600 mb-12">
-            Why Choose <span className="text-slate-800">VyapaarSetu</span>?
-          </h2>
-
-    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-10">
-  {[
-    { icon: Boxes, title: "Smart Inventory", text: "Manage your stock..." },
-    { icon: FileText, title: "Automated GST Reports", text: "Generate tax-ready reports..." },
-    { icon: BarChart3, title: "Analytics & Growth", text: "Get deep insights..." }
-  ].map((f, i) => (
-    <div
-      key={i}
-      className="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl transition transform hover:-translate-y-2 hover:scale-[1.03] card-animate"
-      style={{ animationDelay: `${i * 0.25}s` }}
-    >
-      <f.icon className="w-10 h-10 text-emerald-600 mb-4 mx-auto" />
-      <h3 className="text-xl font-semibold text-slate-800 mb-2">{f.title}</h3>
-      <p className="text-gray-600">{f.text}</p>
-    </div>
-  ))}
-</div>
-
-
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-emerald-600 text-white text-center animate-fadeInSlow">
-        <div className="container mx-auto px-6 lg:px-16">
-          <h2 className="text-3xl font-bold mb-4">Ready to take your business online?</h2>
-          <p className="text-emerald-100 max-w-2xl mx-auto mb-8">
-            Join VyapaarSetu and manage your inventory, billing, and e-commerce operations — all from one powerful platform.
-          </p>
-          <button
-            onClick={() => (window.location.href = "/contact")}
-            className="bg-white text-emerald-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition transform hover:scale-105"
+        {/* Content */}
+        <motion.div
+          initial={{ opacity: 0, y: 25 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1 }}
+          className="relative z-10 max-w-5xl mx-auto text-center"
+        >
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="text-5xl md:text-6xl font-extrabold leading-tight shimmer-text"
           >
-            Get Started Now
-          </button>
-        </div>
+            Build. Scale. Automate.
+            <br />
+            <span className="text-[#4F46E5] shimmer-text">Your Digital Journey Begins Here.</span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="text-gray-300 max-w-2xl mx-auto mt-6 text-lg"
+          >
+            I create high-performance MERN applications, dashboards, portfolios, 
+            and digital systems that help founders, brands, and businesses grow.
+          </motion.p>
+
+          {/* CTA Buttons */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="mt-8 flex flex-col sm:flex-row gap-4 justify-center"
+          >
+            <button
+              onClick={() => (window.location.href = "/contact")}
+              className="px-8 py-3 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] transition flex items-center gap-2 text-white font-medium shadow-lg hover:shadow-[#4F46E5]/40"
+            >
+              Start a Project <ArrowRight className="w-5 h-5" />
+            </button>
+
+            <button
+              onClick={() => (window.location.href = "/about")}
+              className="px-8 py-3 rounded-xl bg-white/10 border border-white/20 hover:bg-white/20 transition text-white font-medium"
+            >
+              Learn More
+            </button>
+          </motion.div>
+        </motion.div>
       </section>
+
+      {/* ABOUT SECTION */}
+      <About />
+
+      {/* SERVICES SECTION */}
+      <Services/>
+
+      {/* FEATURES SECTION */}
+      <Features />
+
+      {/* CONTACT SECTION */}
+      <Contact />
+
+      {/* Footer */}
+      {/* ================= FOOTER SECTION ================= */}
+<section className="w-full bg-[#0D0D0D] text-gray-300 py-16 mt-24">
+  <div className="max-w-6xl mx-auto px-6">
+
+   {/* Motivational Line (Hero-style) */}
+    <div className="flex flex-col items-center text-center mb-12">
+      <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-4 animate-fadeInUp leading-tight max-w-4xl">
+        Code your vision. Scale your business.
+        <span className="text-[#4F46E5]">  Own your future.</span>
+      </h2>
+      <p className="text-gray-400 text-lg md:text-xl max-w-3xl animate-fadeIn delay-200">
+        Build modern, fast, and scalable digital solutions designed to grow your business.
+      </p>
+    </div>
+
+
+    {/* Divider */}
+    <div className="border-b border-gray-700 my-10"></div>
+
+    {/* Footer Grid */}
+    <div className="grid md:grid-cols-3 gap-12">
+
+      {/* Brand */}
+      <div>
+        <h3 className="text-xl font-bold text-white mb-3">YourBrand</h3>
+        <p className="text-gray-400">
+          Creating high-performance websites, apps, dashboards,
+          and tailored digital solutions for startups and businesses.
+        </p>
+      </div>
+
+      {/* Quick Links */}
+      <div>
+        <h3 className="text-lg font-semibold text-white mb-3">Quick Links</h3>
+        <ul className="space-y-2">
+          <li><a href="/" className="hover:text-white transition">Home</a></li>
+          <li><a href="/services" className="hover:text-white transition">Services</a></li>
+          <li><a href="/about" className="hover:text-white transition">About</a></li>
+          <li><a href="/contact" className="hover:text-white transition">Contact</a></li>
+        </ul>
+      </div>
+
+      {/* Contact */}
+      <div>
+        <h3 className="text-lg font-semibold text-white mb-3">Contact</h3>
+        <p className="text-gray-400">Pimpri, Pune, Maharashtra</p>
+        <p className="text-gray-400 mt-1">Email: vyapaarsetu2025@gmail.com</p>
+        <p className="text-gray-400">Phone: +91 8177819283</p>
+
+        {/* Social Icons */}
+        <div className="flex items-center gap-4 mt-4 text-2xl">
+          <a href="#" className="text-[#4F46E5] hover:text-white transition">
+            <i className="fa-brands fa-github"></i>
+          </a>
+          <a href="#" className="text-[#4F46E5] hover:text-white transition">
+            <i className="fa-brands fa-linkedin"></i>
+          </a>
+          <a href="#" className="text-[#4F46E5] hover:text-white transition">
+            <i className="fa-brands fa-instagram"></i>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    {/* Bottom */}
+    <div className="text-center text-gray-500 pt-10 text-sm">
+      © {new Date().getFullYear()} VyapaarSetu — All Rights Reserved.
+    </div>
+
+  </div>
+</section>
+
     </div>
   );
 };

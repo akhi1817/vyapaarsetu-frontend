@@ -14,7 +14,7 @@ const VerifyOtp = () => {
 
   if (!userData) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-100">
+      <div className="flex h-screen items-center justify-center bg-[#0A0A0A]">
         <p className="text-red-500 text-lg font-medium">
           Invalid access. Please register again.
         </p>
@@ -40,36 +40,39 @@ const VerifyOtp = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-blue-50 to-blue-100 px-4">
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm">
-        <h2 className="text-2xl font-bold text-center text-blue-600 mb-6">
+    <div className="flex min-h-screen items-center justify-center bg-[#0A0A0A] px-4">
+      <div className="bg-[#111111] p-6 sm:p-8 rounded-2xl shadow-2xl w-full max-w-sm text-white">
+        <h2 className="text-2xl font-extrabold text-center text-[#4F46E5] mb-6 shimmer-text">
           Verify Your OTP
         </h2>
 
-        <form onSubmit={handleVerify} className="space-y-5">
+        <form onSubmit={handleVerify} className="space-y-4">
           <input
             type="text"
             placeholder="Enter OTP"
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
             required
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 text-center tracking-widest text-lg"
+            className="w-full px-4 py-2 rounded-lg bg-black/20 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-[#4F46E5] text-center tracking-widest text-lg"
           />
 
+          {/* Neon-style Verify button */}
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-2 text-white rounded-lg transition-all ${
-              loading ? "bg-blue-300 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+            className={`w-full py-2 rounded-xl text-white font-medium shadow-lg flex items-center justify-center transition-all duration-300 ${
+              loading
+                ? "bg-[#4F46E5]/50 cursor-not-allowed"
+                : "bg-[#4F46E5] hover:bg-[#4338CA] hover:shadow-[#4F46E5]/40"
             }`}
           >
             {loading ? "Verifying..." : "Verify & Register"}
           </button>
         </form>
 
-        <p className="text-sm text-center text-gray-500 mt-4">
+        <p className="text-sm text-gray-400 mt-5 text-center">
           Didn’t get the OTP?{" "}
-          <span className="text-blue-600 font-medium cursor-pointer hover:underline">
+          <span className="text-[#4F46E5] font-medium cursor-pointer hover:underline">
             Resend
           </span>
         </p>

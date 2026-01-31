@@ -30,12 +30,8 @@ const Login = () => {
         return;
       }
 
-      // ✅ Set Redux state
       dispatch(loginSuccess(user));
-
-      // ✅ Set token in cookie
       Cookies.set("token", res.data.token, { expires: 1 });
-
       toast.success(res.data.message);
 
       if (user.role === "admin") navigate("/admin-dashboard");
@@ -48,49 +44,77 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-blue-50 to-blue-100 px-4">
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm">
-        <h2 className="text-2xl font-bold text-center text-blue-600 mb-6">
+    <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A] px-4">
+      {/* Login Card */}
+      <div className="bg-[#111111] shadow-lg shadow-emerald-500/20 border border-[#1F1F1F] rounded-2xl w-full max-w-sm p-6 animate-fadeIn">
+        
+        {/* Header */}
+        <h2 className="text-2xl font-bold text-white text-center mb-4 shimmer-text">
           Welcome Back 👋
         </h2>
+        <p className="text-gray-400 text-center mb-6 text-sm">
+          Login to manage your account and access all features.
+        </p>
 
-        <form onSubmit={handleLogin} className="space-y-5">
-          <input
-            type="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-          <input
-            type="password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full py-2 text-white rounded-lg transition-all ${
-              loading ? "bg-blue-300 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-            }`}
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
+        {/* Form */}
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div>
+            <label className="block text-gray-300 mb-1 shimmer-text">Email</label>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full px-3 py-2 rounded-lg bg-black/20 border border-gray-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-300 mb-1 shimmer-text">Password</label>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full px-3 py-2 rounded-lg bg-black/20 border border-gray-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            />
+          </div>
+
+       <button
+  type="submit"
+  disabled={loading}
+  className={`
+    w-25 py-2 rounded-xl 
+    bg-[#4F46E5] 
+    hover:bg-[#4338CA] 
+    text-white 
+    font-medium 
+    flex items-center justify-center gap-2 
+    shadow-lg 
+    hover:shadow-[#4F46E5]/40 
+    transition-all duration-300
+    ${loading ? "opacity-60 cursor-not-allowed" : ""}
+  `}
+>
+  {loading ? "Logging in..." : "Login"}
+</button>
+
+
         </form>
 
-        <p className="text-sm text-center text-gray-500 mt-4">
+        {/* Footer Links */}
+        <p className="text-gray-400 text-xs text-center mt-4">
           Don’t have an account?{" "}
           <Link
             to="/send-otp"
-            className="text-blue-600 font-medium hover:underline"
+            className="text-[#4F46E5] hover:underline font-medium"
           >
             Register
           </Link>
         </p>
+
       </div>
     </div>
   );

@@ -51,14 +51,15 @@ const About = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.15 }}
               viewport={{ once: true }}
-              className="p-8 bg-[#111111] rounded-2xl shadow-lg border border-[#1F1F1F] hover:border-[#4F46E5]/40 transition group"
+              className="p-8 bg-[#111111] rounded-2xl shadow-lg transition group"
             >
-              <div className="mb-4">{item.icon}</div>
-              <h3 className="text-xl font-semibold mb-2 shimmer-text inline-block relative">
-                {item.title}
-                <span className="absolute left-1/2 -bottom-1 transform -translate-x-1/2 
-                                 w-16 h-0.5 bg-linear-to-r from-[#4F46E5] to-transparent"></span>
-              </h3>
+              <div className="mb-4 flex justify-center">{item.icon}</div>
+             <h3 className="text-xl font-semibold mb-2 shimmer-text relative text-center">
+              {item.title}
+              <span className="absolute left-1/2 -bottom-1 transform -translate-x-1/2 
+                               w-16 h-0.5 bg-linear-to-r from-[#4F46E5] to-transparent"></span>
+            </h3>
+
               <p className="text-gray-400 leading-relaxed">{item.desc}</p>
             </motion.div>
           ))}

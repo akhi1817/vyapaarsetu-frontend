@@ -12,7 +12,7 @@ import { FaWhatsapp } from "react-icons/fa";
 
 const Home = () => {
   const handleWhatsAppClick = () => {
-    window.open("https://wa.link/srp48t", "_blank");
+    window.open("https://wa.link/kc9ebt", "_blank");
   };
 
   return (
@@ -20,7 +20,7 @@ const Home = () => {
 
       {/* WhatsApp Floating Button */}
 <button
-  onClick={() => window.open("https://wa.me/91XXXXXXXXXX", "_blank")}
+  onClick={() => window.open("https://wa.link/kc9ebt", "_blank")}
   className="
     fixed bottom-6 right-6 
     bg-[#25D366] 

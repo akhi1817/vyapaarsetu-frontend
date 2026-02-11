@@ -142,7 +142,8 @@ const Contact = () => {
           </motion.div>
 
           {/* Right Form Side */}
-          <motion.div
+          
+          {/* <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
@@ -151,6 +152,18 @@ const Contact = () => {
               darkMode ? "bg-gray-900 border-gray-800 hover:shadow-emerald-400/30" : "bg-gray-100 border-gray-300 hover:shadow-emerald-400/30"
             }`}
           >
+            <p className="text-sm leading-relaxed">
+    <strong className="font-semibold">Quick Response:</strong> 
+    For faster support, feel free to message us directly on 
+    <a 
+      href="https://wa.link/kc9ebt" 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="text-emerald-500 font-medium hover:underline ml-1"
+    >
+      WhatsApp
+    </a>.
+  </p>
             <form className="space-y-6" onSubmit={handleSubmit}>
               {["name", "email", "message"].map((field) => (
                 <div key={field}>
@@ -195,7 +208,7 @@ const Contact = () => {
                 {loading ? "Sending..." : "Send Message"}
               </button>
             </form>
-          </motion.div>
+          </motion.div> */}
 
         </div>
       </div>

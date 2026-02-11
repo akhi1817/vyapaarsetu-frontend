@@ -80,7 +80,7 @@ const Home = () => {
             </button>
 
             <button
-              onClick={() => (window.location.href = "/about")}
+              onClick={() => (window.location.href = "/services")}
               className={`px-8 py-3 rounded-xl border font-medium transition ${
                 darkMode
                   ? "bg-white/10 border-white/20 text-white hover:bg-white/20"

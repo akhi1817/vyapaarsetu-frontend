@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import axios from "axios";
 import API_ENDPOINTS from "../../config/api";
 import { toast } from "sonner";
@@ -6,8 +6,10 @@ import { useNavigate, Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../../redux/authSlice";
 import Cookies from "js-cookie";
+import { ThemeContext } from "../../context/ThemeContext";
 
 const Login = () => {
+  const { darkMode } = useContext(ThemeContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -44,12 +46,21 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A] px-4">
+    <div
+      className={`min-h-screen flex items-center justify-center px-4 transition-colors duration-300 ${
+        darkMode ? "bg-black text-white" : "bg-white text-black"
+      }`}
+    >
       {/* Login Card */}
-      <div className="bg-[#111111] shadow-lg shadow-emerald-500/20 border border-[#1F1F1F] rounded-2xl w-full max-w-sm p-6 animate-fadeIn">
-        
+      <div
+        className="bg-[#111111] shadow-lg shadow-emerald-500/20 border border-[#1F1F1F] rounded-2xl w-full max-w-sm p-6 animate-fadeIn"
+      >
         {/* Header */}
-        <h2 className="text-2xl font-bold text-white text-center mb-4 shimmer-text">
+        <h2
+          className={`text-2xl font-bold text-center mb-4 ${
+            darkMode ? "shimmer-text" : "text-black"
+          }`}
+        >
           Welcome Back 👋
         </h2>
         <p className="text-gray-400 text-center mb-6 text-sm">
@@ -59,7 +70,13 @@ const Login = () => {
         {/* Form */}
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-gray-300 mb-1 shimmer-text">Email</label>
+            <label
+              className={`block mb-1 ${
+                darkMode ? "shimmer-text text-gray-300" : "text-black"
+              }`}
+            >
+              Email
+            </label>
             <input
               type="email"
               placeholder="Enter your email"
@@ -71,7 +88,13 @@ const Login = () => {
           </div>
 
           <div>
-            <label className="block text-gray-300 mb-1 shimmer-text">Password</label>
+            <label
+              className={`block mb-1 ${
+                darkMode ? "shimmer-text text-gray-300" : "text-black"
+              }`}
+            >
+              Password
+            </label>
             <input
               type="password"
               placeholder="Enter your password"
@@ -82,26 +105,15 @@ const Login = () => {
             />
           </div>
 
-       <button
-  type="submit"
-  disabled={loading}
-  className={`
-    w-25 py-2 rounded-xl 
-    bg-[#4F46E5] 
-    hover:bg-[#4338CA] 
-    text-white 
-    font-medium 
-    flex items-center justify-center gap-2 
-    shadow-lg 
-    hover:shadow-[#4F46E5]/40 
-    transition-all duration-300
-    ${loading ? "opacity-60 cursor-not-allowed" : ""}
-  `}
->
-  {loading ? "Logging in..." : "Login"}
-</button>
-
-
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full py-2 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white font-medium flex items-center justify-center gap-2 shadow-lg hover:shadow-[#4F46E5]/40 transition-all duration-300 ${
+              loading ? "opacity-60 cursor-not-allowed" : ""
+            }`}
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
         </form>
 
         {/* Footer Links */}
@@ -114,7 +126,6 @@ const Login = () => {
             Register
           </Link>
         </p>
-
       </div>
     </div>
   );

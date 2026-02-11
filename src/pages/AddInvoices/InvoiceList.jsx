@@ -9,6 +9,8 @@ export default function InvoiceList() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [showDueOnly, setShowDueOnly] = useState(false);
+
 
   const fetchInvoices = async () => {
     setLoading(true);
@@ -256,18 +258,16 @@ const printInvoice = (inv) => {
             <th>Final Total</th>
             <th>Received</th>
             <th>Remaining Due</th>
-            <th>Payment Type</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>${inv.websiteName} Web Design Service</td>
+            <td>${inv.websiteName}</td>
             <td>₹${inv.totalAmount}</td>
             <td>₹${discountAmount}</td>
             <td>₹${finalTotal}</td>
             <td>₹${firstPayment}</td>
             <td>₹${firstDue}</td>
-            <td>${ inv.paymentType || "-"}</td> <!-- main invoice type fallback -->
           </tr>
           ${paymentRows}
         </tbody>
@@ -302,17 +302,30 @@ const printInvoice = (inv) => {
 };
 
 
-
-
-
-
-
-  const filteredInvoices = invoices.filter(
+const filteredInvoices = invoices
+  .filter(
     (inv) =>
       inv.clientName.toLowerCase().includes(search.toLowerCase()) ||
       inv.invoiceNo.toLowerCase().includes(search.toLowerCase())
-  );
+  )
+  .filter((inv) => {
+    if (!showDueOnly) return true;
+    const discountAmount =
+      inv.discount?.discountType === "percent"
+        ? (inv.totalAmount * inv.discount.amount) / 100
+        : inv.discount?.amount || 0;
 
+    const finalTotal = Math.max(inv.totalAmount - discountAmount, 0);
+    const due = Math.max(finalTotal - inv.receivedAmount, 0);
+
+    return due > 0; // show only invoices with due
+  });
+
+
+
+
+
+ 
   return (
     <div className="p-4 sm:p-6">
       <div className="flex justify-between items-center mb-6">
@@ -324,7 +337,7 @@ const printInvoice = (inv) => {
           <PlusCircle size={20} /> Create Invoice
         </Link>
       </div>
-
+{/* 
       <div className="mb-4">
         <input
           type="text"
@@ -333,7 +346,27 @@ const printInvoice = (inv) => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-      </div>
+      </div> */}
+
+      <div className="flex items-center gap-3 mb-4">
+  <input
+    type="text"
+    placeholder="Search by client or invoice no..."
+    className="w-full p-3 border rounded-lg"
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+  />
+
+  <button
+    className={`px-4 py-2 rounded-lg font-semibold ${
+      showDueOnly ? "bg-red-600 text-white" : "bg-gray-200 text-gray-700"
+    }`}
+    onClick={() => setShowDueOnly(!showDueOnly)}
+  >
+    Due Invoices
+  </button>
+</div>
+
 
       <div className="overflow-x-auto bg-white shadow rounded-lg">
         <table className="w-full border-collapse">
@@ -375,7 +408,7 @@ const printInvoice = (inv) => {
           <td className="p-3 border">₹{inv.receivedAmount}</td>
           <td
             className={`p-3 border font-semibold ${
-              due === 0 ? "text-green-600" : "text-red-600"
+              due === 0 ? "text-green-600" : "text-red-600 animate-pulse"
             }`}
           >
             ₹{due}

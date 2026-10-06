@@ -21,7 +21,7 @@ const Home = () => {
       {/* WhatsApp Floating Button */}
       <button
         onClick={handleWhatsAppClick}
-        className="fixed bottom-6 right-6 bg-[#25D366] p-4 rounded-full shadow-xl cursor-pointer transition-all duration-300 z-50"
+        className="fixed bottom-14 right-6 bg-[#25D366] p-4 rounded-full shadow-xl cursor-pointer transition-all duration-300 z-50"
       >
         <FaWhatsapp size={35} />
       </button>
